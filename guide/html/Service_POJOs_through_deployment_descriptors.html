@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 29. Service POJOs (JBoss extension of EJB3) using deployment descriptors</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Service_POJOs.html" title="Chapter 28. Service POJOs (JBoss extension of EJB3)"/>
+      <link rel="next" href="Single_Inheritance_in_EJB3_Entities.html" title="Chapter 30. Introduction Single Inheritance in EJB3 Entities"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Service_POJOs.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Single_Inheritance_in_EJB3_Entities.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Service_POJOs_through_deployment_descriptors"/>Chapter 29. Service POJOs (JBoss extension of EJB3) using deployment descriptors</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		This tutorial is similar to the "service" tutorial which shows how to use Service POJOs in JBoss.
+		In this tutorial we will use deployment descriptors instead of annotations to configure the services.
+	</p>
+         <p>
+		Take a look at <code class="literal">org.jboss.tutorial.service_deployment_descriptor.bean.ServiceOne</code> and the corresponding deployment
+		descriptor <code class="literal">META-INF/jboss.xml</code>. The <code class="literal">&lt;service&gt;</code> tag defines it as a
+		singleton service in JBoss. It implements <code class="literal">org.jboss.tutorial.service_deployment_descriptor.bean.ServiceOneRemote</code>
+		and <code class="literal">org.jboss.tutorial.service_deployment_descriptor.bean.ServiceOneLocal</code> using the <code class="literal">&lt;business-remote&gt;</code>
+		and <code class="literal">&lt;business-local&gt;</code> tags.
+	</p>
+         <p>
+		ServiceOne also implements <code class="literal">org.jboss.tutorial.service_deployment_descriptor.bean.ServiceOneManagement</code>
+		identified through the <code class="literal">&lt;management&gt;</code> tag. JBoss will inspect this interface, and create and
+		install an MBean implementing the attributes and operations defined in the interface. The MBean will work on the same
+		singleton bean instance as the remote and local interfaces.
+	</p>
+         <p>
+		The <code class="literal">META-INF/jboss.xml</code> also shows that the default ObjectName of the service can be overriden
+		using the <code class="literal">&lt;object-name&gt;</code> tag:
+
+		</p>
+         <pre class="programlisting">
+			
+&lt;service&gt;
+   &lt;ejb-name&gt;ServiceOne&lt;/ejb-name&gt;
+   &lt;ejb-class&gt;org.jboss.tutorial.service_deployment_descriptor.bean.ServiceOne&lt;/ejb-class&gt;
+   &lt;business-local&gt;org.jboss.tutorial.service_deployment_descriptor.bean.ServiceOneLocal&lt;/business-local&gt;
+   &lt;business-remote&gt;org.jboss.tutorial.service_deployment_descriptor.bean.ServiceOneRemote&lt;/business-remote&gt;
+   &lt;object-name&gt;tutorial:service=serviceOne&lt;/object-name&gt;
+   &lt;management&gt;org.jboss.tutorial.service_deployment_descriptor.bean.ServiceOneManagement&lt;/management&gt;
+   &lt;jndi-name&gt;serviceOne/remote&lt;/jndi-name&gt;
+   &lt;local-jndi-name&gt;serviceOne/local&lt;/local-jndi-name&gt;
+&lt;/service&gt;
+			
+		</pre>
+         <p>
+	
+         </p>
+         <p>
+		Take a look at <code class="literal">org.jboss.tutorial.service_deployment_descriptor.bean.ServiceThree</code> and
+		<code class="literal">org.jboss.tutorial.service_deployment_descriptor.bean.ServiceTwo</code> where we use the <code class="literal">@Depends</code>
+		annotation to add dependencies between services.
+		</p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+				For a detailed explanation of @Depends in @Service, take a look at our "service" tutorial.
+			</p>
+         </div>
+         <p>
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "service_deployment_descriptor" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure the "default" server configuration of JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] attribute value for singleton obtained via JMX is what we set via remote interface: 100
+     [java] Hello from service One
+     [java] Hello from service Two
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <p>
+		On the server side when the application is deployed, you will notice these logs:
+
+		</p>
+         <pre class="programlisting">
+			
+17:37:17,869 INFO  [STDOUT] ServiceOne - Started
+...
+17:37:17,910 INFO  [STDOUT] ServiceTwo - Started
+...
+17:37:17,949 INFO  [STDOUT] ServiceThree - Started
+
+			
+		</pre>
+         <p>
+		Notice that the order is maintained because of the dependencies we have configured on the @Service.
+	</p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Service_POJOs.html">
+               <strong>Prev</strong>Chapter 28. Service POJOs (JBoss extension of EJB...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Single_Inheritance_in_EJB3_Entities.html">
+               <strong>Next</strong>Chapter 30. Introduction Single Inheritance in EJ...</a>
+         </li>
+      </ul>
+   </body>
+</html>

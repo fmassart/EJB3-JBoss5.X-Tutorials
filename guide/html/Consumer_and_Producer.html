@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 38. Message Driven POJOs (JBoss specific)</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Partial_deployment_descriptor.html" title="Chapter 37. Partial Deployment Descriptors"/>
+      <link rel="next" href="TODO.html" title="Chapter 39. TODO"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Partial_deployment_descriptor.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="TODO.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Consumer_and_Producer"/>Chapter 38. Message Driven POJOs (JBoss specific)</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		The idea of Message Driven POJOs is to give a message consumer (an MDB), a typed interface
+		that message producers can send messages through.  Both the publisher and subscriber would be typed interfaces.
+		This further facilitates the removal of all the lookups and bootstrap code you have to do to obtain
+		and send a message and receive and dispatch a JMS message. With regular JMS you have to :
+		</p>
+         <div class="itemizedlist">
+            <ul>
+               <li>Get a connectionfactory</li>
+               <li>Get a connection</li>
+               <li>Get a destination</li>
+               <li>... and so on</li>
+            </ul>
+         </div>
+         <p>
+		For the Message Driven POJOs, you just do:
+		</p>
+         <div class="itemizedlist">
+            <ul>
+               <li>Get a producer</li>
+               <li>Invoke on producer</li>
+            </ul>
+         </div>
+         <p>
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Model :
+		<p>
+			Message Driven POJOs will have the same model as Stateless/Stateful beans. There is a bean class tagged as
+			<code class="literal">@org.jboss.ejb3.annotation.Consumer</code> that must implement one or more <code class="literal">@org.jboss.ejb3.annotation.Producer</code> interfaces. Just
+			as a stateless bean is tagged as <code class="literal">@Stateless</code> and implements one or more
+			<code class="literal">@Remote</code> or <code class="literal">@Local</code> interfaces. Take a look at <code class="literal">org.jboss.tutorial.consumer.bean.ExampleConsumerBean</code>
+
+			
+            </p>
+            <pre class="programlisting">
+				
+@Consumer(activationConfig =
+{@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+      @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/tutorial/example")})
+@Depends ("jboss.messaging.destination:service=Queue,name=tutorial")
+public class ExampleConsumerBean implements ExampleProducerRemote, ExampleProducerLocal, ExampleProducerXA
+{
+...
+   public void method1(String msg, int val)
+   {
+      System.out.println("method1(" + msg + ", " + val + ")");
+   }
+
+   public void method2(String msg, Map&lt;String, String&gt; map)
+   {
+      System.out.println("method2: " + msg);
+      for (String key : map.keySet())
+      {
+         System.out.println("method2 key/val: " + key + ":" + map.get(key));
+      }
+   }
+				
+			</pre>
+            <p>
+			Here's one of the @Producer interfaces :
+			</p>
+            <pre class="programlisting">
+				
+@Producer
+public interface ExampleProducerRemote extends ExampleProducer
+{
+...
+				
+			</pre>
+            <p>
+			You can see in this example that the <code class="literal">ExampleConsumerBean</code> implements the @Producer interfaces and defines
+			the methods which can receive JMS messages. These interfaces will be used by clients(JMS Publishers) to send messages to the
+			consumer via JMS.
+			</p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+					For each <code class="literal">@Producer</code> interface the <code class="literal">@Consumer</code> implements, there
+					will be a proxy that implements that <code class="literal">@Producer</code> registered in JNDI under the fully qualified name of
+					that <code class="literal">@Producer</code> interface.
+				</p>
+            </div>
+            <p>
+			Let's now look at the client <code class="literal">org.jboss.tutorial.consumer.client.Client</code>
+			
+            </p>
+            <pre class="programlisting">
+				
+public static void main(String[] args) throws Exception
+   {
+      InitialContext ctx = new InitialContext();
+      ExampleProducerRemote remote = (ExampleProducerRemote) ctx.lookup(ExampleProducerRemote.class.getName());
+
+      // you can typecast the returned proxy to obtain a ProducerManager interface that allows you to manage
+      // interaction with JMS.
+      ProducerManager manager = ((ProducerObject) remote).getProducerManager();
+
+
+      // connect - internally creates a JMS connection
+      manager.connect();
+
+      try
+      {
+         // Call method1
+         remote.method1("Remote method1 called", 1);
+         System.out.println("Remote method1 called");
+
+         // Call method2
+         Map&lt;String, String&gt; map = new HashMap&lt;String, String&gt;();
+         map.put("hello", "world");
+         map.put("great", "ejb3");
+
+         remote.method2("Remote method2 called", map);
+         System.out.println("Remote method2 called");
+      }
+      finally
+      {
+         // instead of typecasting, you can use a helper class that does everything for you.
+         ProducerConfig.close(remote);
+      }
+				
+			</pre>
+            <p>
+			When the <code class="literal">@Consumer</code> is deployed by the EJB3 container, it looks for all of its <code class="literal">@Producer</code> interfaces
+			and registers each one of them in JNDI under their fully qualified class name.
+			The client looks up the <code class="literal">ExampleProducerRemote</code> from the JNDI and uses the returned proxy to send the message.
+			The returned proxy can be cast to <code class="literal">org.jboss.ejb3.mdb.ProducerObject</code>. It then gets a <code class="literal">org.jboss.ejb3.mdb.ProducerManager</code>,
+			that manages the JMS connection for this proxy. To start being able to send messages to the Queue, the client calls <code class="literal">connect</code> on the
+			<code class="literal">ProducerManager</code>. When the client calls <code class="literal">method1()</code> on the proxy, this method call is converted
+			into a JMS message and published to the Queue of the Consumer. The consumer will receive the message and invoke its <code class="literal">method1</code> method.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Producer default values :
+		<p>
+			The proxy registered in JNDI will know how to contact the JMS Queue/Topic to publish messages. You can specify explicitly through
+			the <code class="literal">connectionFactory</code> attribute of the <code class="literal">@Producer</code>annotation what the JMS ConnectionFactory
+			JNDI name is, or you can rely on defaults.
+
+			</p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+					The default value for the ConnectionFactory JNDI name is "ConnectionFactory". If you additionally tag the producer as @ProducerLocal instead of @Producer,
+					then "java:/ConnectionFactory" will be used.
+				</p>
+            </div>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		@ProducerLocal :
+		<p>
+			If you tag a producer as @ProducerLocal, the proxy will lookup the connection factory via the default InitialContext
+			when connect() is called. Otherwise, the ConnectFactory reference will be embedded directly within the proxy.
+
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		@MessageProperties :
+		<p>
+			The methods defined in a Producer are turned into JMS messages. The default message properties are a Time To Live of 0, a
+			Priority of 4, and a delivery mode of PERSISTENT. You can override these default values in a couple of ways.
+			</p>
+            <div class="itemizedlist">
+               <ul>
+                  <li>
+					You can use the @MessageProperties anntotation and tag the Producer class directly to override the values:
+					<pre class="programlisting">
+						
+@Producer
+@MessageProperties(delivery=DeliveryMode.NON_PERSISTENT, timeToLive=1000, priority=1)
+public interface ExampleProducer
+{
+...
+						
+					</pre>
+					In this configuration, all method calls on ExampleProducer will use the JMS message properties defined with the
+					<code class="literal">@MessageProperties</code> annotation on the interface.
+
+				</li>
+                  <li>
+					You can specify @MessageProperties on a per method basis :
+					<pre class="programlisting">
+						
+public interface ExampleProducer
+{
+   void method1(String msg, int val);
+
+   @MessageProperties(delivery = DeliveryMode.NON_PERSISTENT)
+   void method2(String msg, Map&lt;String, String&gt; map);
+}
+						
+					</pre>
+					So, in the above example, <code class="literal">method1()</code> uses the default message properties, and
+					<code class="literal">method2()</code> overrides the defaults via the <code class="literal">@MessageProperties</code> annotation attached to it.
+
+				</li>
+               </ul>
+            </div>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Obtaining the current message :
+		<p>
+			Sometimes you may need to access the real JMS message. Maybe you need to obtain the replyTo destination or set an
+			acknowledgement or something. You can obtain it by using the <code class="literal">@org.jboss.ejb3.annotation.CurrentMessage</code> annotation.
+			</p>
+            <pre class="programlisting">
+				
+@CurrentMessage
+private Message currentMessage;
+
+
+				
+			</pre>
+            <p>
+			This annotation will inject the current JMS message into your Consumer bean before your target method is invoked.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "consumer" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Remote method1 called
+     [java] Remote method2 called
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	        </div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Partial_deployment_descriptor.html">
+               <strong>Prev</strong>Chapter 37. Partial Deployment Descriptors</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="TODO.html">
+               <strong>Next</strong>Chapter 39. TODO</a>
+         </li>
+      </ul>
+   </body>
+</html>

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 13. Introduction to Extended Persistence Contexts</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="EJB3_Entities.html" title="Chapter 12. Introduction to Entities in EJB3"/>
+      <link rel="next" href="Dependency_Injection.html" title="Chapter 14. Introduction to dependency injection"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="EJB3_Entities.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Dependency_Injection.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Extended_Persistence_Contexts"/>Chapter 13. Introduction to Extended Persistence Contexts</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		Usually, an EntityManager in JBoss EJB 3.0 lives and dies within a JTA transaction. Once the transaction is finished,
+		all persistent objects are detached from the EntityManager and are no longer managed.
+		Any local caching the EntityManager instance had done is lost. JBoss EJB 3.0 allows you to define long-living EntityManagers
+		that live beyond the scope of a JTA transaction. This is called an Extended Persistence Context.
+
+		When you specify that an injected EntityManager is an extended persistence context, all object instances remain managed.
+
+	</p>
+         <p>
+		Extended persistence contexts can only be used within Stateful session beans. Take a look at
+		<code class="literal">org.jboss.tutorial.extended.bean.ShoppingCartBean</code>.
+
+		</p>
+         <pre class="programlisting">
+			
+@Stateful
+@Remote(ShoppingCart.class)
+public class ShoppingCartBean implements ShoppingCart
+{
+   @PersistenceContext(type=PersistenceContextType.EXTENDED)
+   EntityManager em;
+
+   @EJB StatelessLocal stateless;
+
+   private Customer customer;
+
+   public long createCustomer()
+   {
+      customer = new Customer();
+      customer.setName("William");
+      em.persist(customer);
+      return customer.getId();
+   }
+
+   public void update()
+   {
+      customer.setName("Bill");
+   }
+...
+}
+
+			
+		</pre>
+         <p>
+
+		To inject an extended persistence context, you use the <code class="literal">type()</code> attribute and set it to <code class="literal">EXTENDED</code>.
+		If you look at the <code class="literal">createCustomer()</code> method you notice that it is persisting a <code class="literal">Customer</code> object
+		and storing a reference to that	created object within a member variable of the stateful bean. When the update() method is called,
+		you see that the customer's state is modified. Since the entity manager used is EXTENDED, the customer member variable remains
+		managed by the entitymanager and the modified state will be synchronized with the database.
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Conversations :
+	</div>
+         <p>
+		An even more interesting use case is when you combine extended persistence contexts with non-transactional methods.
+		If you interact with an extended persistence context outside of a transaction, the inserts, updates, and deletes
+		will be queued until you access the persistence context within a transaction. This means that any persist(), merge(),
+		or remove() method you call will not actually result in a JDBC execution and thus an update of the database until
+		you manually call EntityManager.flush().
+		</p>
+         <p>
+			Why is this useful? Consider the usecase of a Setup Wizard on a website.  The Wizard has seven steps, seven web pages to enter
+			stuff in.  It is extremely unwise to have a JTA transaction that spans multiple http requests, yet you do not want to commit
+			anything to the database until all steps are complete.  Your code can interact with the EntityManager as it wants and you
+			do not have to worry about updates or writing a lot of gluecode in your application to do all the entity manager's work in the
+			final step of the wizard.  Efficient and highly performant. Because the managed persistent objects remain attached to the
+			persistent context, all optmistic versioning checks can also be maintained within the application transaction.
+			Here's an example on how to do this.
+
+			</p>
+         <pre class="programlisting">
+				
+@Stateful
+@Remote(ShoppingCart.class)
+public class ShoppingCartBean implements ShoppingCart
+{
+   @PersistenceContext(type=PersistenceContextType.EXTENDED)
+   EntityManager em;
+
+   @EJB StatelessLocal stateless;
+
+   private Customer customer;
+
+   public long createCustomer()
+   {
+      customer = new Customer();
+      customer.setName("William");
+      em.persist(customer);
+      return customer.getId();
+   }
+
+   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+   public void never()
+   {
+      customer.setName("Bob");
+   }
+
+
+
+   @Remove
+   public void checkout()
+   {
+   }
+}
+
+				
+			</pre>
+         <p>
+		
+         </p>
+         <p>
+		Calling the never() method will update the managed customer object reference, but will not result in a database update until
+		checkout() is called. The spec requires that any time you invoke a transactional method of a stateful bean,
+		that the EntityManager join the transaction. Therefore, our never() update will be committed at the end of the checkout() method
+		(which by default has the REQUIRED trasaction attribute).
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running
+	</div>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+	To build and run the example, make sure you have installed JBoss 5.x.
+	See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+			From the command prompt, move to the "extended_pc" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+	</div>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <pre class="programlisting">
+	
+$ ant
+$ ant run
+
+run:
+     [java] Created customer: William
+     [java] Customer's name should still be William as pc was not yet flushed:  Customer.getName() == William
+     [java] Now that the pc has been flushed name should be 'Bob': Customer.getName() == Bob
+     [java] Created customer: William
+     [java] ShoppingCartBean.customer should stay managed because we're in an extended PC: Customer.getName() == Bill
+     [java] Extended persistence contexts are propagated to nested EJB calls: Customer.getName() == Bill Jr.
+
+     
+	</pre>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="EJB3_Entities.html">
+               <strong>Prev</strong>Chapter 12. Introduction to Entities in EJB3</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Dependency_Injection.html">
+               <strong>Next</strong>Chapter 14. Introduction to dependency injection</a>
+         </li>
+      </ul>
+   </body>
+</html>

@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 20. Introduction to Message Driven Beans in EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Join_Inheritance_in_EJB3_Entities.html" title="Chapter 19. Introduction Join Inheritance in EJB3 Entities"/>
+      <link rel="next" href="Message_Driven_Beans_with_deployment_descriptor.html" title="Chapter 21. Configuring Message Driven Beans through deployment descriptors"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Join_Inheritance_in_EJB3_Entities.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Message_Driven_Beans_with_deployment_descriptor.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Message_Driven_Beans"/>Chapter 20. Introduction to Message Driven Beans in EJB3</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		This example shows you how to implement an MDB with EJB 3.0 using annotations.
+
+	</p>
+         <p>
+		Take a look at <code class="literal">org.jboss.tutorial.mdb.bean.ExampleMDB</code>. The @MessageDriven annotation
+		defines the bean as an MDB. The <code class="literal">activationConfig</code> attribute contains much of the MDB configuration via
+		<code class="literal">@ActivationConfigProperty</code>. Also notice that the MDB source contains properties for
+		<code class="literal">destinationType</code> and <code class="literal">destination</code>
+
+	
+         </p>
+         <p>
+		The following is the list of standard Activation Config Properties available from the JCA 1.5 specification.
+		Also listed are the respective types and default values where defined.
+		</p>
+         <div class="informaltable">
+            <table border="1">
+               <colgroup>
+                  <col/>
+                  <col/>
+                  <col/>
+                  <col/>
+               </colgroup>
+               <thead>
+                  <tr>
+                     <th>Name</th>
+                     <th>Type</th>
+                     <th>Remarks</th>
+                     <th>Mandatory?</th>
+                     <th>Default value</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <tr>
+                     <td>destination</td>
+                     <td>java.lang.String</td>
+                     <td>The jndi name of the Queue or Topic</td>
+                     <td>Yes</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>destinationType</td>
+                     <td>java.lang.String</td>
+                     <td>The type of destination valid values are javax.jms.Queue or javax.jms.Topic</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>messageSelector</td>
+                     <td>java.lang.String</td>
+                     <td>The message selector of the subscription</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>acknowledgeMode</td>
+                     <td>int</td>
+                     <td>The type of acknowledgement when not using transacted jms - valid values AUTO_ACKNOWLEDGE or DUPS_OK_ACKNOWLEDGE</td>
+                     <td>No</td>
+                     <td>AUTO_ACKNOWLEDGE</td>
+                  </tr>
+                  <tr>
+                     <td>clientID</td>
+                     <td>java.lang.String</td>
+                     <td>The client id of the connection</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>subscriptionDurability</td>
+                     <td>String</td>
+                     <td>Whether topic subscriptions are durable. Valid values are Durable or NonDurable</td>
+                     <td>No</td>
+                     <td>NonDurable</td>
+                  </tr>
+                  <tr>
+                     <td>subscriptionName</td>
+                     <td>String</td>
+                     <td>The subsription name of the topic subscription</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+         <p>
+		The following is the list of Activation Config Properties available as JBoss extensions.
+
+		</p>
+         <div class="informaltable">
+            <table border="1">
+               <colgroup>
+                  <col/>
+                  <col/>
+                  <col/>
+                  <col/>
+               </colgroup>
+               <thead>
+                  <tr>
+                     <th>Name</th>
+                     <th>Type</th>
+                     <th>Remarks</th>
+                     <th>Mandatory?</th>
+                     <th>Default value</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <tr>
+                     <td>isTopic</td>
+                     <td>boolean</td>
+                     <td>Sets the destinationType</td>
+                     <td>No</td>
+                     <td>false</td>
+                  </tr>
+                  <tr>
+                     <td>providerAdapterJNDI</td>
+                     <td>java.lang.String</td>
+                     <td>The jndi name of the jms provider</td>
+                     <td>No</td>
+                     <td>java:/DefaultJMSProvider</td>
+                  </tr>
+                  <tr>
+                     <td>user</td>
+                     <td>java.lang.String</td>
+                     <td>The user id used to connect to the jms server</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>pass</td>
+                     <td>java.lang.String</td>
+                     <td>The password of the user</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>maxMessages</td>
+                     <td>int</td>
+                     <td>Read this number of messages before delivering messages to the mdb.
+							Each message is delivered individually on the same thread in an attempt to
+							avoid context excessive context switching
+						</td>
+                     <td>No</td>
+                     <td>1</td>
+                  </tr>
+                  <tr>
+                     <td>minSession</td>
+                     <td>int</td>
+                     <td>The minimum number of jms sessions that are available to concurrently deliver messages to this mdb</td>
+                     <td>No</td>
+                     <td>1</td>
+                  </tr>
+                  <tr>
+                     <td>maxSession</td>
+                     <td>int</td>
+                     <td>The maximum number of jms sessions that are available to concurrently deliver messages to this mdb</td>
+                     <td>No</td>
+                     <td>15</td>
+                  </tr>
+                  <tr>
+                     <td>reconnectInterval</td>
+                     <td>long</td>
+                     <td>The length of time in seconds between attempts to (re-)connect to the jms provider</td>
+                     <td>No</td>
+                     <td>10 seconds</td>
+                  </tr>
+                  <tr>
+                     <td>keepAlive</td>
+                     <td>long</td>
+                     <td>The length of time in milliseconds that sessions over the minimum are kept alive</td>
+                     <td>No</td>
+                     <td>60 seconds</td>
+                  </tr>
+                  <tr>
+                     <td>sessionTransacted</td>
+                     <td>boolean</td>
+                     <td>Whether the sessions are transacted</td>
+                     <td>No</td>
+                     <td>true</td>
+                  </tr>
+                  <tr>
+                     <td>useDLQ</td>
+                     <td>boolean</td>
+                     <td>Whether to use a DLQ handler</td>
+                     <td>No</td>
+                     <td>true</td>
+                  </tr>
+                  <tr>
+                     <td>dLQJNDIName</td>
+                     <td>java.lang.String</td>
+                     <td>The JNDI name of the DLQ</td>
+                     <td>No</td>
+                     <td>queue/DLQ</td>
+                  </tr>
+                  <tr>
+                     <td>dLQHandler</td>
+                     <td>java.lang.String</td>
+                     <td>The org.jboss.resource.adapter.jms.inflow.DLQHandler implementation class name</td>
+                     <td>No</td>
+                     <td>org.jboss.resource.adapter.jms.inflow.dlq.GenericDLQHandler</td>
+                  </tr>
+                  <tr>
+                     <td>dLQUser</td>
+                     <td>java.lang.String</td>
+                     <td>The user id used to make the dlq connection to the jms server</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>dLQPassword</td>
+                     <td>java.lang.String</td>
+                     <td>The password of the dLQUser</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>dLQClientID</td>
+                     <td>java.lang.String</td>
+                     <td>The client id of the dlq connection</td>
+                     <td>No</td>
+                     <td> </td>
+                  </tr>
+                  <tr>
+                     <td>dLQMaxResent</td>
+                     <td>int</td>
+                     <td>The maximum number of times a message is redelivered before it is sent to the DLQ</td>
+                     <td>No</td>
+                     <td>5</td>
+                  </tr>
+                  <tr>
+                     <td>redeliverUnspecified</td>
+                     <td>boolean</td>
+                     <td>Whether to attempt to redeliver a message in an unspecified transaction context</td>
+                     <td>No</td>
+                     <td>true</td>
+                  </tr>
+                  <tr>
+                     <td>transactionTimeout</td>
+                     <td>int</td>
+                     <td>Time in seconds for the transaction timeout</td>
+                     <td>No</td>
+                     <td>Default is the timeout set for the resource manager</td>
+                  </tr>
+                  <tr>
+                     <td>DeliveryActive</td>
+                     <td>boolean</td>
+                     <td>Whether the MDB should make the subscription at initial deployment or wait for start() or stopDelivery()
+                        on the corresponding MBean. You can set this to false if you want to prevent messages from being delivered
+                        to the MDB (which is still starting) during server startup</td>
+                     <td>No</td>
+                     <td>true</td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+         <p>
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		The Destination :
+
+		<p>
+			The <code class="literal">queue-example-service.xml</code> file defines the queues for this tutorial.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Configuring Default MDB Properties :
+		<p>
+			You can configure MDBs to have default properties using the <code class="literal">@org.jboss.ejb3.annotation.DefaultActivationSpecs</code>
+			annotations. Take a look at <code class="literal">custom-ejb3-interceptors-aop.xml</code>. Here we define a custom container
+			configuration domain, <code class="literal">"Custom Message Driven Bean"</code>, that adds a <code class="literal">@DefaultActivationSpecs</code>
+			annotation and <code class="literal">destinationType</code> and <code class="literal">destination</code> properties to each MDB using this domain.
+			Now take a look at <code class="literal">org.jboss.tutorial.mdb.bean.DefaultedExampleMDB</code>. The MDB is configured to use the
+			<code class="literal">"Custom Message Driven Bean"</code> container configuration domain via the <code class="literal">@AspectDomain</code> annotation.
+			Note there are no properties defined in the <code class="literal">@MessageDriven</code> annotation (they are all from the defaults).
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "mdb" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Message sent successfully to remote queue queue/tutorial/example
+     [java] Message sent successfully to remote queue queue/tutorial/defaultedexample
+
+
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+			On the server console, you will notice the following logs:
+			</p>
+            <pre class="programlisting">
+				
+15:37:57,148 INFO  [STDOUT] ----------------
+15:37:57,148 INFO  [STDOUT] Received defaulted message
+15:37:57,148 INFO  [STDOUT] ----------------
+15:37:57,210 INFO  [STDOUT] ----------------
+15:37:57,210 INFO  [STDOUT] Received message
+15:37:57,210 INFO  [STDOUT] ----------------
+
+				
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Join_Inheritance_in_EJB3_Entities.html">
+               <strong>Prev</strong>Chapter 19. Introduction Join Inheritance in EJB3...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Message_Driven_Beans_with_deployment_descriptor.html">
+               <strong>Next</strong>Chapter 21. Configuring Message Driven Beans thro...</a>
+         </li>
+      </ul>
+   </body>
+</html>

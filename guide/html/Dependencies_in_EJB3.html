@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 8. Introduction to specifying dependencies in EJB3 beans</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Composite_Primary_Keys_for_Entities_in_EJB3.html" title="Chapter 7. Introduction to Composite Primary Keys and Primary Key Classes"/>
+      <link rel="next" href="EJB_2.1_Client_Adaptors.html" title="Chapter 9. Introduction to using EJB2.1 client adaptors with EJB3"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Composite_Primary_Keys_for_Entities_in_EJB3.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="EJB_2.1_Client_Adaptors.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Dependencies_in_EJB3"/>Chapter 8. Introduction to specifying dependencies in EJB3 beans</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		Dependencies of an EJB on a service or services, including other EJBs, may be specified through the
+		<code class="literal">&lt;depends&gt;</code> tag of the jboss.xml deployment descriptor. The <code class="literal">&lt;depends&gt;</code>
+		tag is analagous to the <code class="literal">@org.jboss.ejb3.annotation.Depends</code> annotation. The dependencies control
+		the deployment of EJBs such that an EJB will not deploy until all of it's dependencies have successfully deployed.
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		jboss-service.xml :
+		<p>
+			Take a look at <code class="literal">META-INF/jboss-service.xml</code>. This service deployment descriptor starts
+			a service based on <code class="literal">org.jboss.tutorial.dependency.bean.DependedOn</code>.
+			</p>
+            <pre class="programlisting">
+				
+&lt;server&gt;
+   &lt;mbean code="org.jboss.tutorial.dependency.bean.DependedOn" name="jboss.test:service=DependedOn"/&gt;
+&lt;/server&gt;
+				
+
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		jboss.xml :
+		<p>
+			Take a look at <code class="literal">META-INF/jboss.xml</code>. This deployment descriptor indicates that the
+			<code class="literal">HasXmlMBeanDependencyBean</code> is dependent on the <code class="literal">jboss.test:service=DependedOn</code>
+			started by <code class="literal">jboss-service.xml</code>. The <code class="literal">HasXmlMBeanDependencyBean</code> will not
+			deploy until the <code class="literal">jboss.test:service=DependedOn</code> service has successfully started.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "dependency" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Lookup and bean access succeeded
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Composite_Primary_Keys_for_Entities_in_EJB3.html">
+               <strong>Prev</strong>Chapter 7. Introduction to Composite Primary Keys...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="EJB_2.1_Client_Adaptors.html">
+               <strong>Next</strong>Chapter 9. Introduction to using EJB2.1 client ad...</a>
+         </li>
+      </ul>
+   </body>
+</html>

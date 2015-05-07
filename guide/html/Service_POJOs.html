@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 28. Service POJOs (JBoss extension of EJB3)</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Security_and_Transactions_in_EJB3.html" title="Chapter 27. Introduction to Security and Transactions in EJB3"/>
+      <link rel="next" href="Service_POJOs_through_deployment_descriptors.html" title="Chapter 29. Service POJOs (JBoss extension of EJB3) using deployment descriptors"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Security_and_Transactions_in_EJB3.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Service_POJOs_through_deployment_descriptors.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Service_POJOs"/>Chapter 28. Service POJOs (JBoss extension of EJB3)</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		Service POJOs allow you to define POJOs as JBoss services. The way you define them is very similar
+		to how you define stateless or stateful session beans. One very important difference is that there
+		will only ever be ONE instance of the service bean. i.e. it is not pooled - the bean instance is a
+		singleton. The singleton bean contains shared state, so data set by one client is accessible by other clients.
+	</p>
+         <p>
+		Take a look at <code class="literal">org.jboss.tutorial.service.bean.ServiceOne.java</code>.
+		It has been annotated with <code class="literal">@org.jboss.ejb3.annotation.Service</code>, this defines it as a
+		singleton service in JBoss. It implements <code class="literal">org.jboss.tutorial.service.bean.ServiceOneRemote</code>
+		and <code class="literal">org.jboss.tutorial.service.bean.ServiceOneLocal</code> just as you would do for a normal stateful/stateless bean.
+	</p>
+         <p>
+		ServiceOne also implements <code class="literal">org.jboss.tutorial.service.bean.ServiceOneManagement</code>.
+		<code class="literal">org.jboss.tutorial.service.bean.ServiceOne</code> has been annotated with <code class="literal">@org.jboss.ejb3.annotation.Management</code>.
+		JBoss will inspect this interface, and create and install an MBean implementing the attributes and operations defined in the <code class="literal">@Management</code>
+		interface. The MBean will work on the same singleton bean instance as the remote and local interfaces.
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Lifecycle :
+		<p>
+			Just as for "normal" MBeans in JBoss, the <code class="literal">@Service</code> supports lifecycle management. Lifecycle management
+			consists of two things:
+			</p>
+            <div class="itemizedlist">
+               <ul>
+                  <li>
+					Lifecycle methods
+				</li>
+                  <li>
+					Dependencies
+				</li>
+               </ul>
+            </div>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Lifecycle methods :
+		<p>
+			
+               <code class="literal">org.jboss.tutorial.service.bean.ServiceOneManagement</code> contains the four methods:
+			</p>
+            <pre class="programlisting">
+				
+void create() throws Exception;
+
+void start() throws Exception;
+
+void stop();
+
+void destroy();
+
+				
+			</pre>
+            <p>
+			You do not need to include all these methods, you can pick and choose. If present, the service container will call
+			these methods as follows:
+			</p>
+            <div class="itemizedlist">
+               <ul>
+                  <li>
+                     <code class="literal">create</code> : called by the server when the service is created and all the services it depends
+					upon have been created too. At this point the service (and all the services it depends on) is installed in the
+					JMX server, but is not yet fully functional.
+				</li>
+                  <li>
+                     <code class="literal">start</code> : called by the server when the service is started and all the services it depends upon
+					have been started too. At this point the service (and all the services it depends on) is fully functional.
+				</li>
+                  <li>
+                     <code class="literal">stop</code> : called by the server when the service is stopped. At this point the service
+					(and all the services that depend on it) is no longer fully operational.
+				</li>
+                  <li>
+                     <code class="literal">destroy</code> : called by the server when the service is destroyed and removed from the MBean server.
+					At this point the service (and all the services that depend on it) are destroyed.
+				</li>
+               </ul>
+            </div>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Depends and custom JMX object name :
+		<p>
+			Let's take a look at how to define the dependencies between services. Open <code class="literal">org.jboss.tutorial.service.bean.ServiceTwo</code>.
+			Again it has been annotated with @Service, and it implements the @Management annotated interface <code class="literal">org.jboss.tutorial.service.bean.ServiceTwoManagement</code>.
+			</p>
+            <pre class="programlisting">
+				
+@Service(objectName = ServiceTwo.OBJECT_NAME)
+@Management(ServiceTwoManagement.class)
+@Depends(ServiceOne.OBJECT_NAME)
+public class ServiceTwo implements ServiceTwoManagement
+{
+...
+				
+			</pre>
+            <p>
+			The <code class="literal">@org.jboss.ejb3.annotation.Depends</code> annotation specifies that this service depends on
+			the service created for ServiceOne. i.e. it cannot be started until the service created for ServiceOne has been started.
+			</p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+					You can specify an array of <code class="literal">ObjectName</code>s if you depended on more than one service.
+				</p>
+            </div>
+            <p>
+			You will also notice the use of <code class="literal">objectName</code> property of @Service. This is used to install the service
+			under a custom ObjectName instead of the default ObjectName. So in this tutorial, our ServiceTwo will be registered at
+			<code class="literal">tutorial:service=ServiceTwo</code>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Depends injection :
+		<p>
+			Take a look at <code class="literal">org.jboss.tutorial.bean.ServiceThree</code>. It has dependencies on other MBeans, but rather than
+			annotating the class with @Depends, the dependencies are specified on fields and setter methods.
+			</p>
+            <pre class="programlisting">
+				
+@Depends(ServiceOne.OBJECT_NAME)
+public ObjectName serviceOneName;
+
+private ServiceTwoManagement service2;
+
+@Depends(ServiceTwo.OBJECT_NAME)
+public void setServiceTwo(ServiceTwoManagement service2)
+{
+	this.service2 = service2;
+}
+				
+			</pre>
+            <p>
+			With regard to the lifecycle dependencies, the effect of annotating fields and setters with @Depends is the same
+			as if we annotated the class. So, ServiceThree cannot be started until ServiceOne (<code class="literal">tutorial:service=ServiceOne</code>) and ServiceTwo(<code class="literal">tutorial:service=ServiceTwo</code>)
+			are started. Annotating the fields and setters with @Depends though, allows you to inject the dependencies. So in this tutorial,
+			the <code class="literal">ServiceThree.serviceOneName</code> will be injected with the <code class="literal">ObjectName</code> which corresponds to
+			ServiceOne.	More interesting is the injection of ServiceTwo. <code class="literal">setServiceTwo()</code> takes a parameter, which is the
+			<code class="literal">ServiceTwoManagement</code> management interface of ServiceTwo. The server creates a dynamic proxy for
+			the ServiceTwoManagement interface, and injects that. This means that you can call the methods on the <code class="literal">service2</code>
+			field without caring that you are actually invoking methods on another service.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Interceptors :
+		<p>
+			You can define interceptors for your service beans in the same way as shown in the "interceptors" tutorial.
+			This example defines one in the ServiceThree bean class itself:
+			</p>
+            <pre class="programlisting">
+				
+@AroundInvoke
+public Object intercept(InvocationContext ctx) throws Exception
+{
+   System.out.println("ServiceThree - Interceptor");
+   return ctx.proceed();
+}
+				
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Defining Management Interface via XML :
+		<p>
+			You can deploy a Service bean as an XMBean, where the management attributes and operations are defined via xml.
+			Take a look at <code class="literal">org.jboss.tutorial.service.bean.XMBeanService</code>. Note the @Service annotation
+			specifies an <code class="literal">xmbean</code> property. Also note there is no @Management annotation.
+			</p>
+            <pre class="programlisting">
+				
+@Service(objectName = XMBeanService.OBJECT_NAME, xmbean = "resource:META-INF/service-xmbean.xml")
+@Remote(XMBeanServiceRemote.class)
+public class XMBeanService implements XMBeanServiceRemote
+{
+...
+				
+			</pre>
+            <p>
+			 Now take a look at <code class="literal">META-INF/service-xmbean.xml</code>. This is the file referenced by the <code class="literal">xmbean</code>
+			 property and specifies the bean's management attributes and operations. Note the <code class="literal">class</code>, <code class="literal">constructor</code>,
+			 <code class="literal">attribute</code> and <code class="literal">operation</code> elements.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "service" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure the "default" server configuration of JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] invoking remote business interface of ServiceOne...
+     [java] Set the attribute value through ServiceOneRemote to 100
+     [java] attribute value for (ServiceOne) singleton obtained via JMX is what we set via remote interface: 100
+     [java] Invoking ServiceThree via JMX...
+     [java] Hello from service One
+     [java] ServiceThree - Calling ServiceTwo.sayHello() via MBean proxy
+     [java] invoking XMBean (configured through deployment descriptor)...
+     [java] Set the attribute value to 50
+     [java] Invoking XMBean through JMX
+     [java] attribute value for (XMBeanService deployment descriptor configured) singleton obtained via JMX is what we set via remote interface: 50
+     [java] Hello from an XMBean
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <p>
+		On the server side when the application is deployed, you will notice these logs:
+
+		</p>
+         <pre class="programlisting">
+			
+16:56:54,036 INFO  [STDOUT] ServiceOne - Created
+...
+16:56:54,082 INFO  [STDOUT] ServiceOne - Started
+...
+16:56:54,142 INFO  [STDOUT] ServiceTwo - Started
+...
+16:56:54,226 INFO  [STDOUT] ServiceThree - Started
+
+			
+		</pre>
+         <p>
+		Notice that the order is maintained because of the dependencies we have configured on the @Service.
+	</p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Security_and_Transactions_in_EJB3.html">
+               <strong>Prev</strong>Chapter 27. Introduction to Security and Transact...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Service_POJOs_through_deployment_descriptors.html">
+               <strong>Next</strong>Chapter 29. Service POJOs (JBoss extension of EJB...</a>
+         </li>
+      </ul>
+   </body>
+</html>

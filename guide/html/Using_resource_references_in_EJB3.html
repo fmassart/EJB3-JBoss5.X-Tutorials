@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 25. Introduction to binding the resources to ENC of EJB3 beans</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="EJB3_Entity_Relationships.html" title="Chapter 24. Introduction to relationships between EJB3 entities"/>
+      <link rel="next" href="Secondary_Tables_for_EJB3_Entities.html" title="Chapter 26. Introduction to Secondary tables for EJB3 entities"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="EJB3_Entity_Relationships.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Secondary_Tables_for_EJB3_Entities.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Using_resource_references_in_EJB3"/>Chapter 25. Introduction to binding the resources to ENC of EJB3 beans</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		Resources (e.g. data sources, JavaMail sessions, JMS queues) may be added to the local jndi namespace (ENC)
+		of individual EJBs. This is to separate the jndi names used in the bean code from the global jndi bindings
+		set by the bean deployer. The mapping of the bean local jndi binding and the global binding may be handled
+		via the ejb-jar.xml and jboss.xml deployment descriptors.
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		ejb-jar.xml :
+
+		<p>
+			Take a look at <code class="literal">META-INF/ejb-jar.xml</code>. For <code class="literal">ENCBean</code>, there are 3
+			<code class="literal">&lt;resource-ref&gt;</code> elements indicating resource reference names and types.
+
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		jboss.xml :
+		<p>
+			Take a look at <code class="literal">META-INF/jboss.xml</code>. For <code class="literal">ENCBean</code>, there are again
+			3 <code class="literal">&lt;resource-ref&gt;</code> elements indicating resource reference names and either the global jndi
+			binding via the <code class="literal">&lt;jndi-name&gt;</code> element or the resource name. Resource managers
+			are used to map resource names to global jndi bindings via the <code class="literal">&lt;resource-managers&gt;</code> element.
+
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		TestENCBean.java :
+		<p>
+			Take a look at <code class="literal">org.jboss.tutorial.resource_ref.bean.TestENCBean</code>. Each one of the resources are accessed from the
+			bean local jndi namespace (i.e. java:comp/env) by the value set in the <code class="literal">&lt;res-ref-name&gt;</code> values
+			in the deployment descriptors.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "resource_ref" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Successfully accessed bean resource references
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <p>
+		On the server you will notice these logs:
+		</p>
+         <pre class="programlisting">
+			
+13:44:09,500 INFO  [TestENCBean] Found data source resource ref
+13:44:09,500 INFO  [TestENCBean] Found mail resource ref
+13:44:09,500 INFO  [TestENCBean] Found jms queue resource ref
+13:44:09,500 INFO  [TestENCBean] Found jms queue resource env ref
+
+			
+		</pre>
+         <p>
+	
+         </p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="EJB3_Entity_Relationships.html">
+               <strong>Prev</strong>Chapter 24. Introduction to relationships between...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Secondary_Tables_for_EJB3_Entities.html">
+               <strong>Next</strong>Chapter 26. Introduction to Secondary tables for ...</a>
+         </li>
+      </ul>
+   </body>
+</html>

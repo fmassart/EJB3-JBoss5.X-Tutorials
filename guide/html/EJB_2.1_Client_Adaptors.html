@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 9. Introduction to using EJB2.1 client adaptors with EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Dependencies_in_EJB3.html" title="Chapter 8. Introduction to specifying dependencies in EJB3 beans"/>
+      <link rel="next" href="Embeddable_Objects_in_EJB3_Entities.html" title="Chapter 10. Introduction to embedding objects in EJB3 entities"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Dependencies_in_EJB3.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Embeddable_Objects_in_EJB3_Entities.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="EJB_2.1_Client_Adaptors"/>Chapter 9. Introduction to using EJB2.1 client adaptors with EJB3</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		EJB 3.0 is backward compatible to EJB 2.x clients and supports the use of local and remote home interfaces as well as
+		initialization methods (e.g. ejbCreate()). This capability is configured through annotations and/or through deployment
+		descriptors.
+	</p>
+         <p>
+		Take a look at <code class="literal">org.jboss.tutorial.ejb21_client_adaptors.bean.Session1Bean</code>. Note
+		that the class is annotated with <code class="literal">@RemoteHome</code> and the <code class="literal">ejbCreate()</code> method is annotated
+		with <code class="literal">@Init</code>. The former annotation indicates that the bean provides a EJB 2.1 style home interface. The latter
+		annotation indicates that when the <code class="literal">create()</code> method is invoked from the home interface, the bean is initialized
+		via the <code class="literal">ejbCreate</code> method.
+		</p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+				The initialization method (annotated with <code class="literal">@Init</code>) name is not restricted to be ejbCreate(). You can
+				specify any other name for that method.
+			</p>
+         </div>
+         <p>
+
+	
+         </p>
+         <p>
+		
+            <code class="literal">org.jboss.tutorial.ejb21_client_adaptors.bean.Session2Bean</code> illustrates the use of a local home interface.
+	</p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+				There's a very important difference between the <code class="literal">remote</code> and a <code class="literal">business-remote</code>
+				interface. The EJB2.x remote interfaces, which extend from EJBObject, are referred through the <code class="literal">&lt;remote&gt;</code>
+				tag in the ejb-jar.xml. On the other hand, the EJB3 style Plain Old Java Interface which is implemented by your EJB3 style
+				POJO bean is known as the business-remote interface and is represented by the <code class="literal">@Remote</code> and it's
+				corresponding <code class="literal">&lt;business-remote&gt;</code> tag in ejb-jar.xml.
+
+				Similar is the case with <code class="literal">&lt;local&gt;</code> and the <code class="literal">&lt;business-local&gt;</code> tags in ejb-jar.xml.
+			</p>
+            <p>
+				In this tutorial, you will notice that we are using <code class="literal">remote</code> and <code class="literal">local</code> interfaces and
+				not <code class="literal">business-remote</code> and <code class="literal">business-local</code> interfaces.
+			</p>
+         </div>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+			Since we are not using any <code class="literal">business-remote</code> or <code class="literal">business-local</code> interfaces, in this tutorial,
+			unlike the "jndibinding" tutorial, we cannot use the <code class="literal">@RemoteBinding</code> or <code class="literal">@LocalBinding</code>
+			annotations to bind the EJBs. Instead, we configure the jndi-names for these beans through the <code class="literal">META-INF/jboss.xml</code>:
+
+			</p>
+            <pre class="programlisting">
+				
+&lt;session&gt;
+	&lt;ejb-name&gt;Session1&lt;/ejb-name&gt;
+	&lt;jndi-name&gt;Session1Remote&lt;/jndi-name&gt;
+&lt;/session&gt;
+&lt;session&gt;
+	&lt;ejb-name&gt;Session2&lt;/ejb-name&gt;
+	&lt;local-jndi-name&gt;Session2Local&lt;/local-jndi-name&gt;
+&lt;/session&gt;
+
+				
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+         <p>
+		Similarly, <code class="literal">org.jboss.tutorial.ejb21_client_adaptors.bean.DeploymentDescriptorSession1Bean</code> and
+		<code class="literal">org.jboss.tutorial.ejb21_client_adaptors.DeploymentDescriptorSession2Bean</code> mimic the behavior of
+		the first two beans, but use deployment descriptors to indicate the home interface(s) and initialization method(s).
+		Take a look at the <code class="literal">META-INF/ejb-jar.xml</code>. Note the <code class="literal">home</code> and <code class="literal">local-home</code>
+		tags that indicate the respective home interfaces. Also, note the <code class="literal">init-method</code> tag that indicates the
+		initialization method(s) executed when beans are created via the home interface(s).
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "ejb21_client_adaptors" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Session1 init value is initialized
+     [java] Session2 init value is initialized
+     [java] DeploymentDescriptor Session1 init value is initialized
+     [java] DeploymentDescriptor Session2 init value is initialized
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Dependencies_in_EJB3.html">
+               <strong>Prev</strong>Chapter 8. Introduction to specifying dependencie...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Embeddable_Objects_in_EJB3_Entities.html">
+               <strong>Next</strong>Chapter 10. Introduction to embedding objects in ...</a>
+         </li>
+      </ul>
+   </body>
+</html>

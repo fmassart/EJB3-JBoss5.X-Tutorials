@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 32. Configuring Stateless Session Beans with deployment descriptors in EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Stateful_Session_Beans_in_EJB3_with_deployment_descriptors.html" title="Chapter 31. Configuring Stateful Session Beans with deployment descriptors in EJB3"/>
+      <link rel="next" href="Table_per_Class_inheritance_in_EJB3_Entities.html" title="Chapter 33. Table per Class inheritance in EJB3 Entities"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Stateful_Session_Beans_in_EJB3_with_deployment_descriptors.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Table_per_Class_inheritance_in_EJB3_Entities.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Stateless_Session_Beans_in_EJB3_with_deployment_descriptors"/>Chapter 32. Configuring Stateless Session Beans with deployment descriptors in EJB3</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		CalculatorBean is defined as a stateless session bean through the <code class="literal">&lt;session&gt;</code> and
+		<code class="literal">&lt;session-type&gt;</code> elements. This marks the class as a stateless bean and the deployer will
+		deploy that class as a stateless bean EJB container.
+	</p>
+         <p>
+		CalculatorBean also implements two interfaces. One is the business-remote interface of the EJB the other is the business-local
+		interface. Take a look at <code class="literal">org.jboss.tutorial.stateless_deployment_descriptor.bean.CalculatorRemote</code>. To define this
+		as the business-remote interface of Calculator bean you specify the interface with the <code class="literal">&lt;remote&gt;</code> tag.
+		Similarly for <code class="literal">org.jboss.tutorial.stateless_deployment_descriptor.bean.CalculatorLocal</code> you need to specify the
+		business-local interface with the <code class="literal">&lt;local&gt;</code> tag. Here's the <code class="literal">META-INF/ejb-jar.xml</code>:
+
+		</p>
+         <pre class="programlisting">
+			
+&lt;session&gt;
+         &lt;ejb-name&gt;Calculator&lt;/ejb-name&gt;
+         &lt;business-local&gt;org.jboss.tutorial.stateless_deployment_descriptor.bean.CalculatorLocal&lt;/business-local&gt;
+         &lt;business-remote&gt;org.jboss.tutorial.stateless_deployment_descriptor.bean.CalculatorRemote&lt;/business-remote&gt;
+         &lt;ejb-class&gt;org.jboss.tutorial.stateless_deployment_descriptor.bean.CalculatorBean&lt;/ejb-class&gt;
+         &lt;session-type&gt;Stateless&lt;/session-type&gt;
+         &lt;transaction-type&gt;Container&lt;/transaction-type&gt;
+&lt;/session&gt;
+			
+		</pre>
+         <p>
+
+		
+         </p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+				There's a very important difference between the <code class="literal">remote</code> and a <code class="literal">business-remote</code>
+				interface. The EJB2.x remote interfaces, which extend from EJBObject, are referred through the <code class="literal">&lt;remote&gt;</code>
+				tag in the ejb-jar.xml. On the other hand, the EJB3 style Plain Old Java Interface which is implemented by your EJB3 style
+				POJO bean is known as the business-remote interface and is represented by the <code class="literal">@Remote</code> and it's
+				corresponding <code class="literal">&lt;business-remote&gt;</code> tag in ejb-jar.xml.
+
+				Similar is the case with <code class="literal">&lt;local&gt;</code> and the <code class="literal">&lt;business-local&gt;</code> tags in ejb-jar.xml.
+			</p>
+         </div>
+         <p>
+
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		JNDI Bindings through deployment descriptor :
+
+		<p>
+			The Calculator bean will have two JNDI bindings for the remote and Local interface. The <code class="literal">META-INF/jboss.xml</code>
+			through the <code class="literal">&lt;jndi-name&gt;</code> and the <code class="literal">&lt;local-jndi-name&gt;</code> specifies the jndi-name
+			for the remote and the local interfaces, respectively:
+
+			</p>
+            <pre class="programlisting">
+				
+&lt;session&gt;
+         &lt;ejb-name&gt;Calculator&lt;/ejb-name&gt;
+         &lt;jndi-name&gt;org.jboss.tutorial.stateless_deployment_descriptor.bean.CalculatorRemote&lt;/jndi-name&gt;
+         &lt;local-jndi-name&gt;org.jboss.tutorial.stateless_deployment_descriptor.bean.CalculatorLocal&lt;/local-jndi-name&gt;
+&lt;/session&gt;
+				
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Client :
+
+		<p>
+			Open up <code class="literal">org.jboss.tutorial.stateless_deployment_descriptor.client.Client</code>.
+			The client looks up the bean using the jndi-name specified in the jboss.xml. Also notice that there is no Home interface
+			and you can begin executing on the stateless bean right away.
+
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "stateless_deployment_descriptor" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] 1 + 1 = 2
+     [java] 1 - 1 = 0
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Stateful_Session_Beans_in_EJB3_with_deployment_descriptors.html">
+               <strong>Prev</strong>Chapter 31. Configuring Stateful Session Beans wi...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Table_per_Class_inheritance_in_EJB3_Entities.html">
+               <strong>Next</strong>Chapter 33. Table per Class inheritance in EJB3 E...</a>
+         </li>
+      </ul>
+   </body>
+</html>

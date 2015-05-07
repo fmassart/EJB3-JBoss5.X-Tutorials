@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 37. Partial Deployment Descriptors</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Asynchronous_Invocations.html" title="Chapter 36. Asynchronous proxy for EJBs - JBoss specific extension to EJB3"/>
+      <link rel="next" href="Consumer_and_Producer.html" title="Chapter 38. Message Driven POJOs (JBoss specific)"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Asynchronous_Invocations.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Consumer_and_Producer.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Partial_deployment_descriptor"/>Chapter 37. Partial Deployment Descriptors</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+      EJB 3.0 allows for partial deployment descriptors to augment or override the behavior of source code annotations. This tutorial describes
+      the use of partial deployment descriptors.
+   </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+      Overview :
+		<p>
+	 		Beans in EJB 3.0 can be specified via source code annotations and/or a deployment descriptor. The deployment descriptor is used to
+	 		augment or override the source code annotations. There are some limitations on which annotations may be overridden, however.
+	 		The annotations that specify the bean itself (e.g. <code class="literal">@Stateless</code>, <code class="literal">@Stateful</code>,
+	 		<code class="literal">@MessageDriven</code>, <code class="literal">@Service</code>,  <code class="literal">@Consumer</code>) cannot be overridden.
+	 		The EJB 3.0 <code class="literal">ejb-jar.xml</code> deployment descriptor xsd specifies the majority of tags as optional in order to
+	 		support annotation augmentation and overrides. The deployment descriptor does not need to specify all of the required information,
+	 		just that additional information to override or augment the source code annotations.
+      </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+      Example :
+      	<p>
+         	This section contains examples of complete and partial deployment descriptors for completely specifying or overriding
+         	specific behaviors of EJBs.
+      	</p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+         	Complete deployment descriptor :
+         	<p>
+            	Take a look at the <code class="literal">META-INF/ejb-jar.xml</code>. The ejb-jar.xml in this tutorial configures the <code class="literal">CompleteXMLDD</code>
+            	bean only through the deployment descriptor. The <code class="literal">PartialXMLDD</code> bean is configured through the deployment descriptor
+            	as well as through annotations.
+				</p>
+               <pre class="programlisting">
+					
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;ejb-jar
+        xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                            http://java.sun.com/xml/ns/javaee/ejb-jar_3_0.xsd"
+        version="3.0"&gt;
+	&lt;description&gt;Partial deployment descriptors for EJB in JBoss&lt;/description&gt;
+   	&lt;display-name&gt;Partial deployment descriptors&lt;/display-name&gt;
+   	&lt;enterprise-beans&gt;
+      &lt;session&gt;
+         &lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+         &lt;business-remote&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.CompleteXMLDD&lt;/business-remote&gt;
+         &lt;ejb-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.CompleteXMLDDBean&lt;/ejb-class&gt;
+         &lt;session-type&gt;Stateless&lt;/session-type&gt;
+         &lt;transaction-type&gt;Container&lt;/transaction-type&gt;
+         &lt;ejb-ref&gt;
+            &lt;ejb-ref-name&gt;ejb/PartialXMLDD&lt;/ejb-ref-name&gt;
+            &lt;ejb-ref-type&gt;Session&lt;/ejb-ref-type&gt;
+            &lt;mapped-name&gt;PartialXMLDD/remote&lt;/mapped-name&gt;
+            &lt;injection-target&gt;
+             	&lt;injection-target-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.CompleteXMLDDBean&lt;/injection-target-class&gt;
+             	&lt;injection-target-name&gt;partialXMLDDBean&lt;/injection-target-name&gt;
+             &lt;/injection-target&gt;
+         &lt;/ejb-ref&gt;
+         &lt;resource-ref&gt;
+             &lt;res-ref-name&gt;TimerService&lt;/res-ref-name&gt;
+             &lt;res-type&gt;javax.ejb.TimerService&lt;/res-type&gt;
+             &lt;res-auth&gt;Container&lt;/res-auth&gt;
+             &lt;res-sharing-scope&gt;Shareable&lt;/res-sharing-scope&gt;
+             &lt;injection-target&gt;
+             	&lt;injection-target-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.CompleteXMLDDBean&lt;/injection-target-class&gt;
+             	&lt;injection-target-name&gt;timerService&lt;/injection-target-name&gt;
+             &lt;/injection-target&gt;
+         &lt;/resource-ref&gt;
+         &lt;post-construct&gt;
+         	&lt;lifecycle-callback-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.ExternalCallbackListener&lt;/lifecycle-callback-class&gt;
+         	&lt;lifecycle-callback-method&gt;postConstruct&lt;/lifecycle-callback-method&gt;
+         &lt;/post-construct&gt;
+
+         &lt;security-identity&gt;
+            &lt;run-as&gt;
+               &lt;role-name&gt;admin&lt;/role-name&gt;
+            &lt;/run-as&gt;
+         &lt;/security-identity&gt;
+      &lt;/session&gt;
+      &lt;session&gt;
+         &lt;ejb-name&gt;PartialXMLDD&lt;/ejb-name&gt;
+         &lt;business-remote&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.PartialXMLDD&lt;/business-remote&gt;
+         &lt;ejb-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.PartialXMLDDBean&lt;/ejb-class&gt;
+         &lt;session-type&gt;Stateful&lt;/session-type&gt;
+         &lt;init-method&gt;
+         	&lt;create-method&gt;
+         		&lt;method-name&gt;create&lt;/method-name&gt;
+         	&lt;/create-method&gt;
+         	&lt;bean-method&gt;
+         		&lt;method-name&gt;init&lt;/method-name&gt;
+         	&lt;/bean-method&gt;
+         &lt;/init-method&gt;
+         &lt;remove-method&gt;
+         	&lt;bean-method&gt;
+         		&lt;method-name&gt;remove&lt;/method-name&gt;
+         	&lt;/bean-method&gt;
+         &lt;/remove-method&gt;
+         &lt;transaction-type&gt;Container&lt;/transaction-type&gt;
+
+         &lt;env-entry&gt;
+            &lt;env-entry-name&gt;id&lt;/env-entry-name&gt;
+            &lt;env-entry-type&gt;java.lang.String&lt;/env-entry-type&gt;
+            &lt;env-entry-value&gt;5678&lt;/env-entry-value&gt;
+         &lt;/env-entry&gt;
+         &lt;resource-ref&gt;
+            &lt;res-ref-name&gt;DefaultDS&lt;/res-ref-name&gt;
+            &lt;res-type&gt;javax.sql.DataSource&lt;/res-type&gt;
+            &lt;res-auth&gt;Container&lt;/res-auth&gt;
+            &lt;res-sharing-scope&gt;Shareable&lt;/res-sharing-scope&gt;
+            &lt;injection-target&gt;
+            	&lt;injection-target-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.PartialXMLDDBean&lt;/injection-target-class&gt;
+            	&lt;injection-target-name&gt;ds&lt;/injection-target-name&gt;
+            &lt;/injection-target&gt;
+         &lt;/resource-ref&gt;
+      &lt;/session&gt;
+   &lt;/enterprise-beans&gt;
+   &lt;interceptors&gt;
+   	&lt;interceptor&gt;
+   		&lt;interceptor-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.FirstInterceptor&lt;/interceptor-class&gt;
+   		&lt;around-invoke&gt;
+   			&lt;method-name&gt;interceptorMethod&lt;/method-name&gt;
+   		&lt;/around-invoke&gt;
+   	&lt;/interceptor&gt;
+   	&lt;interceptor&gt;
+   		&lt;interceptor-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.SecondInterceptor&lt;/interceptor-class&gt;
+   	&lt;/interceptor&gt;
+   &lt;/interceptors&gt;
+   &lt;assembly-descriptor&gt;
+   	  &lt;security-role&gt;
+         &lt;role-name&gt;admin&lt;/role-name&gt;
+      &lt;/security-role&gt;
+      &lt;security-role&gt;
+         &lt;role-name&gt;normal&lt;/role-name&gt;
+      &lt;/security-role&gt;
+      &lt;method-permission&gt;
+         &lt;role-name&gt;normal&lt;/role-name&gt;
+         &lt;method&gt;
+            &lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+            &lt;method-name&gt;sayHello&lt;/method-name&gt;
+         &lt;/method&gt;
+      &lt;/method-permission&gt;
+      &lt;method-permission&gt;
+         &lt;unchecked/&gt;
+         &lt;method&gt;
+            &lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+            &lt;method-name&gt;sayBye&lt;/method-name&gt;
+         &lt;/method&gt;
+      &lt;/method-permission&gt;
+      &lt;method-permission&gt;
+         &lt;role-name&gt;admin&lt;/role-name&gt;
+         &lt;method&gt;
+            &lt;ejb-name&gt;PartialXMLDD&lt;/ejb-name&gt;
+            &lt;method-name&gt;echoMessage&lt;/method-name&gt;
+         &lt;/method&gt;
+         &lt;method&gt;
+            &lt;ejb-name&gt;PartialXMLDD&lt;/ejb-name&gt;
+            &lt;method-name&gt;changeMessage&lt;/method-name&gt;
+         &lt;/method&gt;
+      &lt;/method-permission&gt;
+      &lt;container-transaction&gt;
+         &lt;method&gt;
+            &lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+            &lt;method-name&gt;greetWithNotSupportedTransaction&lt;/method-name&gt;
+         &lt;/method&gt;
+         &lt;trans-attribute&gt;NotSupported&lt;/trans-attribute&gt;
+      &lt;/container-transaction&gt;
+      &lt;container-transaction&gt;
+         &lt;method&gt;
+            &lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+            &lt;method-name&gt;greetWithRequiredTransaction&lt;/method-name&gt;
+            &lt;method-params&gt;
+               &lt;method-param&gt;java.lang.String&lt;/method-param&gt;
+            &lt;/method-params&gt;
+         &lt;/method&gt;
+         &lt;trans-attribute&gt;Required&lt;/trans-attribute&gt;
+      &lt;/container-transaction&gt;
+      &lt;interceptor-binding&gt;
+      	&lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+      	&lt;interceptor-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.FirstInterceptor&lt;/interceptor-class&gt;
+      	&lt;interceptor-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.SecondInterceptor&lt;/interceptor-class&gt;
+   	  &lt;/interceptor-binding&gt;
+      &lt;exclude-list&gt;
+         &lt;method&gt;
+            &lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+            &lt;method-name&gt;uncallableMethod&lt;/method-name&gt;
+         &lt;/method&gt;
+      &lt;/exclude-list&gt;
+
+   &lt;/assembly-descriptor&gt;
+
+&lt;/ejb-jar&gt;
+
+			
+		</pre>
+               <p>
+       
+               </p>
+            </div>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+         Transactions :
+         <p>
+            The following <code class="literal">ejb-jar.xml</code> file overrides any <code class="literal">@TransactionAttribute</code> annotations for the
+            <code class="literal">greetWithNotSupportedTransaction</code> method of the <code class="literal">CompleteXMLDD</code> bean and adds a
+            <code class="literal">@TransactionAttribute</code> annotation for <code class="literal">NOT SUPPORTED</code>.
+            </p>
+               <pre class="programlisting">
+            	
+@TransactionAttribute (TransactionAttributeType.REQUIRES_NEW)
+public String greetWithNotSupportedTransaction(String name)
+{
+
+...
+&lt;container-transaction&gt;
+   &lt;method&gt;
+      &lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+      &lt;method-name&gt;greetWithNotSupportedTransaction&lt;/method-name&gt;
+   &lt;/method&gt;
+   &lt;trans-attribute&gt;NotSupported&lt;/trans-attribute&gt;
+&lt;/container-transaction&gt;
+...
+            </pre>
+               <p>
+         
+               </p>
+            </div>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+         References :
+         <p>
+            The following <code class="literal">ejb-jar.xml</code> file creates a EJB reference and injects the EJB to the injection
+            target of the <code class="literal">partialXMLDDBean</code> member variable.
+            </p>
+               <pre class="programlisting">
+&lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+...
+&lt;ejb-ref&gt;
+   &lt;ejb-ref-name&gt;ejb/PartialXMLDD&lt;/ejb-ref-name&gt;
+   &lt;ejb-ref-type&gt;Session&lt;/ejb-ref-type&gt;
+   &lt;mapped-name&gt;PartialXMLDD/remote&lt;/mapped-name&gt;
+   &lt;injection-target&gt;
+    	&lt;injection-target-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.CompleteXMLDDBean&lt;/injection-target-class&gt;
+    	&lt;injection-target-name&gt;partialXMLDDBean&lt;/injection-target-name&gt;
+    &lt;/injection-target&gt;
+&lt;/ejb-ref&gt;
+...
+            </pre>
+               <p>
+         
+               </p>
+            </div>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+         Callbacks :
+         <p>
+            The following <code class="literal">ejb-jar.xml</code> file adds a <code class="literal">@PostConstruct</code> annotation to the
+            <code class="literal">postConstruct</code> method of the <code class="literal">CompleteXMLDD</code> bean.
+            </p>
+               <pre class="programlisting">
+            	
+&lt;ejb-name&gt;CompleteXMLDD&lt;/ejb-name&gt;
+...
+&lt;post-construct&gt;
+	&lt;lifecycle-callback-class&gt;org.jboss.tutorial.partial_deployment_descriptor.bean.ExternalCallbackListener&lt;/lifecycle-callback-class&gt;
+	&lt;lifecycle-callback-method&gt;postConstruct&lt;/lifecycle-callback-method&gt;
+&lt;/post-construct&gt;
+...
+            	
+            </pre>
+               <p>
+         
+               </p>
+            </div>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "partial_deployment_descriptor" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] jai is a normal user
+     [java] Hello, jai. I am the CompleteXMLDDBean. I have the following resources with me:
+     [java] Timer Service : org.jboss.ejb3.timerservice.jboss.TimerServiceFacade@184a6b9
+     [java] PartialXMLDD Bean : Proxy to jboss.j2ee:jar=jboss-ejb3-tutorial-partial_deployment_descriptor.jar,name=PartialXMLDD,service=EJB3 implementing [interface org.jboss.ejb3.proxy.intf.EjbProxy, interface org.jboss.tutorial.partial_deployment_descriptor.bean.PartialXMLDD, interface org.jboss.ejb3.proxy.intf.StatefulSessionProxy, interface org.jboss.ejb3.proxy.intf.SessionProxy]
+     [java]
+     [java] Welcome jai, you are in a method with no transaction supported
+     [java] Welcome jai, you are in a method with a REQUIRED transaction
+     [java] Bye, jai. Hope to see you again
+     [java] We'll try calling an uncallable method
+     [java] Caught expected exception : Caller unauthorized
+     [java] bill is an admin
+     [java] Sending Hello World message to bean. We expect the bean to change it
+     [java] This message has been changed
+     [java] Now calling echo message
+     [java] Hello World
+     [java] We are done with the bean, let's remove it
+     [java] Bean removed
+
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Asynchronous_Invocations.html">
+               <strong>Prev</strong>Chapter 36. Asynchronous proxy for EJBs - JBoss s...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Consumer_and_Producer.html">
+               <strong>Next</strong>Chapter 38. Message Driven POJOs (JBoss specific)</a>
+         </li>
+      </ul>
+   </body>
+</html>

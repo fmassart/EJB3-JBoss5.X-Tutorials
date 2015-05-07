@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 6. Introduction to Callbacks and Callback Handlers in EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Caching_EJB3_Entities.html" title="Chapter 5. Caching EJB3 Entities"/>
+      <link rel="next" href="Composite_Primary_Keys_for_Entities_in_EJB3.html" title="Chapter 7. Introduction to Composite Primary Keys and Primary Key Classes"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Caching_EJB3_Entities.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Composite_Primary_Keys_for_Entities_in_EJB3.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Callbacks_and_Callback_Handlers"/>Chapter 6. Introduction to Callbacks and Callback Handlers in EJB3</h2>
+               </div>
+            </div>
+         </div>
+
+		The EJB 3.0 specification defines some callbacks, and allows you to handle these by implementing your own callback handlers.
+		The callbacks defined for each bean are shown below:
+		<div class="itemizedlist">
+            <ul>
+               <li>
+                  <p>
+					Stateless session bean callbacks
+					</p>
+                  <div class="itemizedlist">
+                     <ul>
+                        <li>
+                           <code class="literal">PostConstruct</code> - is invoked when the bean is first created, after any dependency injection is done.
+						</li>
+                        <li>
+                           <code class="literal">PreDestroy</code> - is invoked when the bean is removed from the pool or destroyed.
+						</li>
+                     </ul>
+                  </div>
+                  <p>
+				
+                  </p>
+               </li>
+               <li>
+                  <p>
+					Message-driven bean callbacks
+					</p>
+                  <div class="itemizedlist">
+                     <ul>
+                        <li>
+                           <code class="literal">PostConstruct</code> - is invoked when the bean is first created, after any dependency injection is done.
+						</li>
+                        <li>
+                           <code class="literal">PreDestroy</code> - is invoked when the bean is removed from the pool or destroyed.
+						</li>
+                     </ul>
+                  </div>
+                  <p>
+				
+                  </p>
+               </li>
+               <li>
+                  <p>
+					Stateful session bean callbacks
+					</p>
+                  <div class="itemizedlist">
+                     <ul>
+                        <li>
+                           <code class="literal">PostConstruct</code> - is invoked when the bean is first created, after any dependency injection is done.
+						</li>
+                        <li>
+                           <code class="literal">PreDestroy</code> - is invoked when the bean is removed from the pool or destroyed.
+								It will happen before any <code class="literal">@Remove</code> annotated method is invoked.
+						</li>
+                        <li>
+                           <code class="literal">PostActivate</code>
+                        </li>
+                        <li>
+                           <code class="literal">PrePassivate</code>
+                        </li>
+                     </ul>
+                  </div>
+                  <p>
+				
+                  </p>
+               </li>
+               <li>
+                  <p>
+					Entity bean callbacks
+					</p>
+                  <div class="itemizedlist">
+                     <ul>
+                        <li>
+                           <code class="literal">PrePersist</code> - Is invoked right before the entity is created in the database.
+								Will cascade to all entities to which this operation is cascaded.
+						</li>
+                        <li>
+                           <code class="literal">PostPersist</code> - Is invoked right after the entity is created in the database.
+								Will cascade to all entities to which this operation is cascaded.
+						</li>
+                        <li>
+                           <code class="literal">PreRemove</code> - Is invoked right before the entity is deleted in the database.
+								Will cascade to all entities to which this operation is cascaded.
+						</li>
+                        <li>
+                           <code class="literal">PostRemove</code> - Is invoked right after the entity is deleted in the database.
+								Will cascade to all entities to which this operation is cascaded.
+						</li>
+                        <li>
+                           <code class="literal">PreUpdate</code> - Takes place right before the database is updated.
+						</li>
+                        <li>
+                           <code class="literal">PostUpdate</code> - Takes place immediately after the database has been updated.
+						</li>
+                        <li>
+                           <code class="literal">PostLoad</code> - Takes place right after data has been loaded
+								from the database and associated with the entity
+						</li>
+                     </ul>
+                  </div>
+                  <p>
+					The callbacks are not compulsory, and you can define the ones you want to handle.
+				</p>
+               </li>
+            </ul>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+			Using callbacks on the bean class:
+		</div>
+         <p>
+			You use the callbacks listed above by annotating methods in the bean class.
+			The annotations live in the <code class="literal">javax.ejb</code> package so for example <code class="literal">PostConstruct</code>
+			would be <code class="literal">javax.ejb.PostConstruct</code>. You can call the methods what you like, but their method signature
+			must return a void and take no arguments. Look at the <code class="literal">org.jboss.tutorial.callback.bean.CustomerDAOBean</code>
+			stateless session bean and you will see that the <code class="literal">preDestroyCallback()</code> method has been annotated with
+			<code class="literal">@javax.ejb.PreDestroy</code>. For session/message-driven beans, just like for interceptors, if the bean class
+			extends another class any callback annotated methods on the super class will be invoked first.
+		</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+			Entity listeners for entity beans:
+		</div>
+         <p>
+			You can also separate out the callbacks for entity beans into a separate EntityListener class. Take a look at the
+			<code class="literal">org.jboss.tutorial.callback.bean.Customer</code> entity bean, and you will see that the class has been annotated with
+			<code class="literal">@javax.persistence.EntityListener("org.jboss.tutorial.callback.bean.CustomerCallbackListener")</code>.
+			This specifies that the <code class="literal">org.jboss.tutorial.callback.bean.CustomerCallbackListener</code> class should be used as
+			the callback listener class for the bean. Now open <code class="literal">org.jboss.tutorial.callback.bean.CustomerCalbackListener</code>
+			and you will see that the class annotates the callback methods in the same way as when defining callbacks on the bean class itself.
+			However, one __important difference__ is that callback methods defined in a listener class must take a single argument, which will
+			be the bean we are working with. The parameter must be of type <code class="literal">java.lang.Object</code>, or the actual bean type.
+		</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+			Interceptors for session/message-driven beans:
+		</div>
+         <p>
+			Callbacks for session beans can also be put into a separate class, configured as an interceptor.
+			This means that your interceptors can initialise themselves when constructed. The lifecycle methods in an interceptor
+			must have the following signature:
+
+			</p>
+         <pre class="programlisting">Object &lt;any method name&gt;(InvocationContext)</pre>
+         <p>
+			
+            <code class="literal">org.jboss.tutorial.callback.bean.CustomerDAOBean</code> specifies that it wants to use an external interceptor.
+			</p>
+         <pre class="programlisting">
+@Stateless
+@Remote(CustomerDAO.class)
+@Interceptors({LifecycleInterceptor.class})
+public class CustomerDAOBean implements CustomerDAO
+{
+   ...
+}
+			</pre>
+         <p>
+
+			and <code class="literal">org.jboss.tutorial.callback.bean.LifecycleInterceptor</code> has a <code class="literal">@PostConstruct</code> annotated method.
+			As shown, each interceptor lifecycle method must call <code class="literal">proceed</code> on the InvocationContext to invoke
+			the next interceptor. Interceptors may contain both the <code class="literal">@AroundInvoke</code> methods for intercepting
+			business methods, and lifecycle methods. If you want to configure lifecycle methods for your interceptors with xml,
+			you will need to do this in the <code class="literal">interceptor</code> section of ejb-jar.xml, and the keywords are
+			<code class="literal">post-construct-method</code>, <code class="literal">post-activate-method</code>, <code class="literal">pre-passivate-method</code>
+			and <code class="literal">pre-destry-method</code>. For example:
+
+			</p>
+         <pre class="programlisting">
+&lt;ejb-jar&gt;
+   &lt;interceptors&gt;
+      &lt;interceptor&gt;
+         &lt;interceptor-class&gt;org.acme.SomeInterceptor&lt;/interceptor-class&gt;
+         &lt;around-invoke-method&gt;
+            &lt;method-name&gt;interceptorMethod&lt;/method-name&gt;
+         &lt;/around-invoke-method&gt;
+         &lt;post-construct-method&gt;
+            &lt;method-name&gt;sendCancelMessage&lt;/method-name&gt;
+         &lt;/post-construct-method&gt;
+         &lt;pre-destroy-method&gt;
+            &lt;method-name&gt;sendCancelMessage&lt;/method-name&gt;
+         &lt;/pre-destroy-method&gt;
+      &lt;/interceptor&gt;
+   &lt;/interceptors&gt;
+&lt;/ejb-jar&gt;
+
+			</pre>
+         <p>
+
+			Interceptor methods for handling lifecycle events follow exactly the same ordering and inheritance rules as business method
+			interceptor methods, and an interceptor instance follows the lifecycle of the bean instance it is bound to.
+
+		</p>
+         <p>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running
+		</div>
+         <p>
+
+		
+         </p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+	To build and run the example, make sure you have installed JBoss 5.x.
+	See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+		
+         </p>
+         <p>
+			From the command prompt, move to the "callbacks" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <p>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+		</div>
+         <p>
+		
+         </p>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <p>
+	
+         </p>
+         <pre class="programlisting">
+$ ant
+$ ant run
+
+run:
+     [java] Create Bill Burke and Monica Smith
+     [java] Bill and Monica get married
+     [java] Get all the Burkes
+     [java] There are now 2 Burkes
+     [java] Bill and Monica are moving abroad
+	</pre>
+         <p>
+
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <p>
+
+	
+         </p>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+         <p>
+
+In the jboss console window you should see:
+
+	</p>
+         <pre class="programlisting">
+23:52:11,162 INFO  [STDOUT] LifecycleInterceptor postConstruct
+23:52:11,162 INFO  [STDOUT] PostConstruct - Have EntityManager: true
+23:52:11,424 INFO  [STDOUT] -- CustomerDAOBean.create()
+23:52:11,575 INFO  [STDOUT] doPrePersist: About to create Customer: Bill Burke
+23:52:11,608 INFO  [STDOUT] doPostPersist: Created Customer: Bill Burke
+23:52:11,644 INFO  [STDOUT] -- CustomerDAOBean.create()
+23:52:11,644 INFO  [STDOUT] doPrePersist: About to create Customer: Monica Smith
+23:52:11,645 INFO  [STDOUT] doPostPersist: Created Customer: Monica Smith
+23:52:11,655 INFO  [STDOUT] -- CustomerDAOBean.find()
+23:52:11,673 INFO  [STDOUT] doPostLoad: Loaded Customer: Monica Smith
+23:52:11,700 INFO  [STDOUT] -- CustomerDAOBean.merge()
+23:52:11,704 INFO  [STDOUT] doPostLoad: Loaded Customer: Monica Smith
+23:52:11,705 INFO  [STDOUT] doPreUpdate: About to update Customer: Monica Burke
+23:52:11,727 INFO  [STDOUT] doPostUpdate: Updated Customer: Monica Burke
+23:52:11,735 INFO  [STDOUT] -- CustomerDAOBean.findByLastName(id)
+23:52:12,101 INFO  [STDOUT] doPostLoad: Loaded Customer: Bill Burke
+23:52:12,102 INFO  [STDOUT] doPostLoad: Loaded Customer: Monica Burke
+23:52:12,113 INFO  [STDOUT] -- CustomerDAOBean.delete()
+23:52:12,116 INFO  [STDOUT] doPostLoad: Loaded Customer: Bill Burke
+23:52:12,118 INFO  [STDOUT] doPreRemove: About to delete Customer: Bill Burke
+23:52:12,124 INFO  [STDOUT] doPostLoad: Loaded Customer: Monica Burke
+23:52:12,125 INFO  [STDOUT] doPreRemove: About to delete Customer: Monica Burke
+23:52:12,128 INFO  [STDOUT] doPostRemove: Deleted Customer: Bill Burke
+23:52:12,128 INFO  [STDOUT] doPostRemove: Deleted Customer: Monica Burke
+
+	</pre>
+         <p>
+	Now if you open up the persistence.xml, in this tutorial, and uncomment the following:
+
+
+	</p>
+         <pre class="programlisting">
+&lt;property name="hibernate.show_sql" value="true"/&gt;
+	</pre>
+         <p>
+	and rebuild and run the tutorial, the output should be:
+
+	</p>
+         <pre class="programlisting">
+00:00:24,514 INFO  [STDOUT] LifecycleInterceptor postConstruct
+00:00:24,514 INFO  [STDOUT] PostConstruct - Have EntityManager: true
+00:00:24,759 INFO  [STDOUT] -- CustomerDAOBean.create()
+00:00:24,760 INFO  [STDOUT] doPrePersist: About to create Customer: Bill Burke
+00:00:24,760 INFO  [STDOUT] Hibernate: insert into CUSTOMER (id, CITY, FIRST, LAST, STATE, STREET, ZIP) values (null, ?, ?, ?, ?, ?, ?)
+00:00:24,761 INFO  [STDOUT] Hibernate: call identity()
+00:00:24,762 INFO  [STDOUT] doPostPersist: Created Customer: Bill Burke
+00:00:24,773 INFO  [STDOUT] -- CustomerDAOBean.create()
+00:00:24,773 INFO  [STDOUT] doPrePersist: About to create Customer: Monica Smith
+00:00:24,774 INFO  [STDOUT] Hibernate: insert into CUSTOMER (id, CITY, FIRST, LAST, STATE, STREET, ZIP) values (null, ?, ?, ?, ?, ?, ?)
+00:00:24,774 INFO  [STDOUT] Hibernate: call identity()
+00:00:24,775 INFO  [STDOUT] doPostPersist: Created Customer: Monica Smith
+00:00:24,784 INFO  [STDOUT] -- CustomerDAOBean.find()
+00:00:24,785 INFO  [STDOUT] Hibernate: select customer0_.id as id8_0_, customer0_.CITY as CITY8_0_, customer0_.FIRST as FIRST8_0_, customer0_.LAST as LAST8_0_, customer0_.STATE as STATE8_0_, customer0_.STREET as STREET8_0_, customer0_.ZIP as ZIP8_0_ from CUSTOMER customer0_ where customer0_.id=?
+00:00:24,786 INFO  [STDOUT] doPostLoad: Loaded Customer: Monica Smith
+00:00:24,817 INFO  [STDOUT] -- CustomerDAOBean.merge()
+00:00:24,818 INFO  [STDOUT] Hibernate: select customer0_.id as id8_0_, customer0_.CITY as CITY8_0_, customer0_.FIRST as FIRST8_0_, customer0_.LAST as LAST8_0_, customer0_.STATE as STATE8_0_, customer0_.STREET as STREET8_0_, customer0_.ZIP as ZIP8_0_ from CUSTOMER customer0_ where customer0_.id=?
+00:00:24,818 INFO  [STDOUT] doPostLoad: Loaded Customer: Monica Smith
+00:00:24,818 INFO  [STDOUT] doPreUpdate: About to update Customer: Monica Burke
+00:00:24,820 INFO  [STDOUT] Hibernate: update CUSTOMER set CITY=?, FIRST=?, LAST=?, STATE=?, STREET=?, ZIP=? where id=?
+00:00:24,820 INFO  [STDOUT] doPostUpdate: Updated Customer: Monica Burke
+00:00:24,834 INFO  [STDOUT] -- CustomerDAOBean.findByLastName(id)
+00:00:24,880 INFO  [STDOUT] Hibernate: select customer0_.id as id8_, customer0_.CITY as CITY8_, customer0_.FIRST as FIRST8_, customer0_.LAST as LAST8_, customer0_.STATE as STATE8_, customer0_.STREET as STREET8_, customer0_.ZIP as ZIP8_ from CUSTOMER customer0_ where customer0_.LAST=?
+00:00:24,881 INFO  [STDOUT] doPostLoad: Loaded Customer: Bill Burke
+00:00:24,881 INFO  [STDOUT] doPostLoad: Loaded Customer: Monica Burke
+00:00:24,896 INFO  [STDOUT] -- CustomerDAOBean.delete()
+00:00:24,897 INFO  [STDOUT] Hibernate: select customer0_.id as id8_0_, customer0_.CITY as CITY8_0_, customer0_.FIRST as FIRST8_0_, customer0_.LAST as LAST8_0_, customer0_.STATE as STATE8_0_, customer0_.STREET as STREET8_0_, customer0_.ZIP as ZIP8_0_ from CUSTOMER customer0_ where customer0_.id=?
+00:00:24,897 INFO  [STDOUT] doPostLoad: Loaded Customer: Bill Burke
+00:00:24,898 INFO  [STDOUT] doPreRemove: About to delete Customer: Bill Burke
+00:00:24,898 INFO  [STDOUT] Hibernate: select customer0_.id as id8_0_, customer0_.CITY as CITY8_0_, customer0_.FIRST as FIRST8_0_, customer0_.LAST as LAST8_0_, customer0_.STATE as STATE8_0_, customer0_.STREET as STREET8_0_, customer0_.ZIP as ZIP8_0_ from CUSTOMER customer0_ where customer0_.id=?
+00:00:24,899 INFO  [STDOUT] doPostLoad: Loaded Customer: Monica Burke
+00:00:24,899 INFO  [STDOUT] doPreRemove: About to delete Customer: Monica Burke
+00:00:24,900 INFO  [STDOUT] Hibernate: delete from CUSTOMER where id=?
+00:00:24,900 INFO  [STDOUT] doPostRemove: Deleted Customer: Bill Burke
+00:00:24,900 INFO  [STDOUT] Hibernate: delete from CUSTOMER where id=?
+00:00:24,900 INFO  [STDOUT] doPostRemove: Deleted Customer: Monica Burke
+
+
+	</pre>
+         <p>
+	Thus you can see how the callbacks on the entity bean wrap the interaction with the database.
+	</p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Caching_EJB3_Entities.html">
+               <strong>Prev</strong>Chapter 5. Caching EJB3 Entities</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Composite_Primary_Keys_for_Entities_in_EJB3.html">
+               <strong>Next</strong>Chapter 7. Introduction to Composite Primary Keys...</a>
+         </li>
+      </ul>
+   </body>
+</html>

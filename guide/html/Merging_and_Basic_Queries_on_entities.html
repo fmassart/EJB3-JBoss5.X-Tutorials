@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 22. Introduction to merging and querying of entities in EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Message_Driven_Beans_with_deployment_descriptor.html" title="Chapter 21. Configuring Message Driven Beans through deployment descriptors"/>
+      <link rel="next" href="EJB2.1_and_EJB3_references.html" title="Chapter 23. Referencing EJB3 beans in EJB2.1 and vice versa"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Message_Driven_Beans_with_deployment_descriptor.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="EJB2.1_and_EJB3_references.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Merging_and_Basic_Queries_on_entities"/>Chapter 22. Introduction to merging and querying of entities in EJB3</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		This example shows a bunch of things. First, it introduces the <code class="literal">@Column</code> annotation.
+		It also shows how entities can be detached and re-attached to persistence storage using the <code class="literal">EntityManager.merge()</code>.
+		It also shows some basic queries.
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		@Column :
+
+		<p>
+			EJB 3.0 has a complete Object/Relational mapping. You can use the <code class="literal">@Column</code> annotation to specify
+			which column in the table your property should map to. Take a look at the <code class="literal">org.jboss.tutorial.merge.bean.Customer</code>
+			entity.
+			</p>
+            <pre class="programlisting">
+				
+@Column(name = "FIRST")
+public String getFirst()
+{
+   return first;
+}
+
+				
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Find by primary key :
+		<p>
+			The <code class="literal">EntityManager</code> service has a built in find by primary key method:
+			</p>
+            <pre class="programlisting">
+				
+&lt;T&gt; find(Class&lt;T&gt;, Object pk)
+				
+			</pre>
+            <p>
+			The <code class="literal">org.jboss.tutorial.merge.bean.CustomerDAOBean</code> stateless EJB's <code class="literal">find()</code> method
+			wraps remote calls to the EntityManager.
+			</p>
+            <pre class="programlisting">
+				
+public Customer find(int id)
+{
+   return manager.find(Customer.class, id);
+}
+
+				
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Queries :
+		<p>
+			
+               <code class="literal">EntityManager</code> allows you to create query objects on the fly that can be reused over and over,
+			or just one time.  Queries also support named parameters. The <code class="literal">org.jboss.tutorial.merge.bean.CustomerDAOBean</code>
+			reflects this usage in the <code class="literal">findByLastName</code> method.
+			</p>
+            <pre class="programlisting">
+				
+public List findByLastName(String name)
+{
+   return manager.createQuery("from Customer c where c.last = :name").setParameter("name", name).getResultList();
+}
+
+				
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Merging :
+		<p>
+			The Value Object pattern is built into EJB 3.0. You can detach an object from persistence storage and send it across
+			the network to the client. The client can make updates locally to the object, send it back to the server and the changes
+			can be merged/synchronized back to the database using the <code class="literal">EntityManager.merge()</code> method.
+			This is exactly what the <code class="literal">org.jboss.tutorial.merge.client.Client</code> does.
+
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "merge" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Create Bill Burke and Monica Smith
+     [java] Bill and Monica get married
+     [java] Get all the Burkes
+     [java] There are now 2 Burkes
+
+
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+			View the tables and rows:
+
+		<p>
+			You can view the tables created by JBoss by going to the
+			<a xmlns:xlink="http://www.w3.org/1999/xlink" href="http://localhost:8080/jmx-console/HtmlAdaptor?action=inspectMBean&amp;name=jboss%3Aservice%3DHypersonic%2Cdatabase%3DlocalDB">Hypersonic Service</a>,
+			scrolling down to the <code class="literal">startDatabaseManager</code> button and clicking it.
+			A Hypersonic SQL window will be minimized, but you can open it up to look at the tables and do queries.
+
+		</p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Message_Driven_Beans_with_deployment_descriptor.html">
+               <strong>Prev</strong>Chapter 21. Configuring Message Driven Beans thro...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="EJB2.1_and_EJB3_references.html">
+               <strong>Next</strong>Chapter 23. Referencing EJB3 beans in EJB2.1 and ...</a>
+         </li>
+      </ul>
+   </body>
+</html>

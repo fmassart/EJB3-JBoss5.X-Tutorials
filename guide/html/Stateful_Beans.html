@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 3. Introduction to EJB3 Stateful Beans</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Stateless_Beans.html" title="Chapter 2. Introduction to EJB3 Stateless Beans"/>
+      <link rel="next" href="Blob_and_Clob_support_in_EJB3.html" title="Chapter 4. Introduction to Blob and Clob support in EJB3"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Stateless_Beans.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Blob_and_Clob_support_in_EJB3.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Stateful_Beans"/>Chapter 3. Introduction to EJB3 Stateful Beans</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+	It is very easy to create a Stateful Bean with EJB 3.0. All bean types are homeless in EJB 3.0 so all you have to do to create a
+	Stateful bean is to create a bean class and have it implement at least one interface.
+	Take a look at <code class="literal">org.jboss.tutorial.stateful.bean.ShoppingCartBean</code> in the tutorial.
+	</p>
+         <p>
+	The first thing to notice is that the class is tagged as <code class="literal">@Stateful</code>. This marks the class as a stateful bean and
+	the deployer will deploy that class as a stateful bean EJB container.
+	</p>
+         <p>
+	ShoppingCartBean also implements a remote interface. Take a look at <code class="literal">org.jboss.tutorial.stateful.bean.ShoppingCart</code>
+	
+         </p>
+         <p>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+@Remove
+		</div>
+         <p>
+	Take another look at <code class="literal">org.jboss.tutorial.stateful.bean.ShoppingCartBean</code>.
+	Look for the method annotated as @Remove. Instead of explicitly calling EJBObject.remove() in your applications and thus polluting it
+	further with J2EE specific code, any method tagged with @Remove will cause the stateful bean instance to be removed from the container
+	at the end of the method call.
+	</p>
+         <p>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+JNDI Bindings
+		</div>
+         <p>
+	The ShoppingCartBean will have its remote interface bound in JNDI, by default, under the ejbName/local and/or ejbName/remote for
+	the local and remote interfaces, respectively.
+	</p>
+         <p>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Client
+		</div>
+         <p>
+	Open up <code class="literal">org.jboss.tutorial.stateful.client.Client</code>.
+  	You'll see that it looks up the stateful bean under "ejbName/remote". Also notice that there is no Home interface and you can begin
+  	executing on the stateful bean right away. When you access the bean in JNDI, an instance of the stateful bean will be created on the server.
+  	So, when you need a different instance of the stateful bean, you do an additional jndi.lookup() to get this new reference.
+
+	</p>
+         <p>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running
+		</div>
+         <p>
+
+		
+         </p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+			To build and run the example, make sure you have installed JBoss 5.x.
+			See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+		
+         </p>
+         <p>
+			From the command prompt, move to the "stateful" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <p>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+		</div>
+         <p>
+		
+         </p>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <p>
+	
+         </p>
+         <pre class="programlisting">
+$ ant
+$ ant run
+
+	</pre>
+         <p>
+
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <p>
+
+	
+         </p>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+         <p>
+
+	
+         </p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Stateless_Beans.html">
+               <strong>Prev</strong>Chapter 2. Introduction to EJB3 Stateless Beans</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Blob_and_Clob_support_in_EJB3.html">
+               <strong>Next</strong>Chapter 4. Introduction to Blob and Clob support ...</a>
+         </li>
+      </ul>
+   </body>
+</html>

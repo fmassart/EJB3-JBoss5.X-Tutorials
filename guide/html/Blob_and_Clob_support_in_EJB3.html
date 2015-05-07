@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 4. Introduction to Blob and Clob support in EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Stateful_Beans.html" title="Chapter 3. Introduction to EJB3 Stateful Beans"/>
+      <link rel="next" href="Caching_EJB3_Entities.html" title="Chapter 5. Caching EJB3 Entities"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Stateful_Beans.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Caching_EJB3_Entities.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Blob_and_Clob_support_in_EJB3"/>Chapter 4. Introduction to Blob and Clob support in EJB3</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+	The EJB 3.0 specification has support for Blob and Clob types.  The specification allows you to map the following types to
+an entity property:
+		</p>
+         <div class="itemizedlist">
+            <ul>
+               <li>
+                  <p>
+					
+                     <code class="literal">java.sql.Blob</code>
+				
+                  </p>
+               </li>
+               <li>
+                  <p>
+					
+                     <code class="literal">java.sql.Clob</code>
+				
+                  </p>
+               </li>
+               <li>
+                  <p>
+					Any Serializable Object
+				</p>
+               </li>
+               <li>
+                  <p>
+					byte[], Byte[]
+				</p>
+               </li>
+               <li>
+                  <p>
+					char[], String, Character[]
+				</p>
+               </li>
+            </ul>
+         </div>
+         <p>
+	
+         </p>
+         <p>
+	To use this feature just need to use the <code class="literal">@javax.persistence.Lob</code> annotation. The <code class="literal">Lob</code> annotation is an
+	encapsulation of what type of lob you want.  Below is an example of defining fields in an entity that are blobs or clobs.
+
+		</p>
+         <pre class="programlisting">
+@Entity
+public class BlobEntity implements Serializable
+{
+   private long id;
+   private Blob blobby;
+   private Clob clobby;
+
+   @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+   public long getId()
+   {
+      return id;
+   }
+
+   public void setId(long id)
+   {
+      this.id = id;
+   }
+
+   @Lob @Basic(fetch = FetchType.EAGER)
+   public Blob getBlobby()
+   {
+      return blobby;
+   }
+
+   public void setBlobby(Blob blobby)
+   {
+      this.blobby = blobby;
+   }
+
+   @Lob @Basic(fetch = FetchType.EAGER)
+   public Clob getClobby()
+   {
+      return clobby;
+   }
+
+   public void setClobby(Clob clobby)
+   {
+      this.clobby = clobby;
+   }
+
+
+}
+		</pre>
+         <p>
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Working with Blobs and Clobs:
+	</div>
+         <p>
+Open up <code class="literal">org.jboss.tutorial.blob.bean.LobTesterBean</code> and look for the <code class="literal">create()</code> method. JBoss EJB3
+is built on top of the Hibernate persistence engine.  Hibernate has some helper methods for creating blobs and clobs that {{LobTesterBean}}
+uses.
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Blob creation:
+	</div>
+         <p>
+		
+            <code class="literal">org.hibernate.Hibernate.createBlob(byte[] bytes)</code>
+		
+            <code class="literal">org.hibernate.Hibernate.createBlob(InputStream stream, int length)</code>
+		
+            <code class="literal">org.hibernate.Hibernate.createBlob(InputStream stream)</code>
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Clob creation:
+	</div>
+         <p>
+		
+            <code class="literal">org.hibernate.Hibernate.createClob(String string)</code>
+		
+            <code class="literal">org.hibernate.Hibernate.createClob(Reader reader, int length)</code>
+	
+         </p>
+         <p>
+		Blobs and clobs must only be accessed within a transaction.  Blobs and clobs are also not serializable or detachable.
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Mapping Strings/byte[] to Clob/Blob:
+	</div>
+         <p>
+		This is pretty easy, just look at BlobEntity2.java
+
+		</p>
+         <pre class="programlisting">
+@Entity
+public class BlobEntity2 implements Serializable
+{
+   private long id;
+   private byte[] blobby;
+   private String clobby;
+
+   @Id @GeneratedValue(strategy=GenerationType.AUTO)
+   public long getId()
+   {
+      return id;
+   }
+
+   public void setId(long id)
+   {
+      this.id = id;
+   }
+
+   @Lob @Basic(fetch = FetchType.EAGER)
+   public byte[] getBlobby()
+   {
+      return blobby;
+   }
+
+   public void setBlobby(byte[] blobby)
+   {
+      this.blobby = blobby;
+   }
+
+   @Lob @Basic(fetch = FetchType.EAGER)
+   public String getClobby()
+   {
+      return clobby;
+   }
+
+   public void setClobby(String clobby)
+   {
+      this.clobby = clobby;
+   }
+
+
+}
+
+		</pre>
+         <p>
+
+	
+         </p>
+         <p>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running:
+		</div>
+         <p>
+
+		
+         </p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+	To build and run the example, make sure you have installed JBoss 5.x.
+	See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+		From the command prompt, move to the "blob" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+		</div>
+         <p>
+		
+         </p>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <p>
+	
+         </p>
+         <pre class="programlisting">
+$ ant
+$ ant run
+
+	</pre>
+         <p>
+
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <p>
+
+	
+         </p>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+         <p>
+
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+View the tables and rows:
+	</div>
+         <p>
+		You can view the tables created by JBoss by going to the
+		<a xmlns:xlink="http://www.w3.org/1999/xlink" href="http://localhost:8080/jmx-console/HtmlAdaptor?action=inspectMBean&amp;name=jboss%3Aservice%3DHypersonic%2Cdatabase%3DlocalDB">Hypersonic Service</a>,
+		scrolling down to the <code class="literal">startDatabaseManager</code> button and clicking it.
+		A Hypersonic SQL window will be minimized, but you can open it up to look at the tables and do queries.
+
+	</p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Stateful_Beans.html">
+               <strong>Prev</strong>Chapter 3. Introduction to EJB3 Stateful Beans</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Caching_EJB3_Entities.html">
+               <strong>Next</strong>Chapter 5. Caching EJB3 Entities</a>
+         </li>
+      </ul>
+   </body>
+</html>

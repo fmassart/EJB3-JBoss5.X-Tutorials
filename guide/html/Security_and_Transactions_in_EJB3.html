@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 27. Introduction to Security and Transactions in EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Secondary_Tables_for_EJB3_Entities.html" title="Chapter 26. Introduction to Secondary tables for EJB3 entities"/>
+      <link rel="next" href="Service_POJOs.html" title="Chapter 28. Service POJOs (JBoss extension of EJB3)"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Secondary_Tables_for_EJB3_Entities.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Service_POJOs.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Security_and_Transactions_in_EJB3"/>Chapter 27. Introduction to Security and Transactions in EJB3</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		The EJB 3.0 specification has made the XML deployment descriptors optional. This tutorial goes over how to
+		use the transaction and security annotations of EJB 3.0.
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Transactions :
+		<p>
+			Using transactions is easy, just use the <span class="ERROR">&lt;listing&gt;javax.ejb.TransactionAttribute&lt;/listing&gt;</span> annotation.
+			The <code class="literal">javax.ejb.TransactionAttributeType</code> enum has every transactional type. Here's an example
+			for using REQUIRES_NEW transaction type:
+			</p>
+            <pre class="programlisting">
+				
+@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+public int add(int x, int y)
+{
+   return x + y;
+}
+
+				
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Security :
+		<p>
+			Take a look at <code class="literal">org.jboss.tutorial.security.bean.CalculatorBean</code>. The <code class="literal">@javax.annotation.security.RolesAllowed</code>
+			and <code class="literal">@javax.annotation.security.PermitAll</code> are the EJB 3.0 security annotations. You can attach a method permission to any method
+			and define which roles are allowed to invoke on that method. The <code class="literal">javax.ejb.RunAs</code> annotation can also be applied at the class
+			level. There is also an additional JBoss specific annotation that you must supply at the class level <code class="literal">@org.jboss.ejb3.annotation.SecurityDomain</code>.
+			The <code class="literal">@SecurityDomain</code> specifies the JAAS application-policy name which will be used by JBoss to authenticate and authorize.
+			See the JBoss Application Server documentation for more details. In this particular example, the "other" domain is used.
+			The "other" domain corresponds to a users.properties and roles.properties files that contain cleartext user, password, and user/role associations.
+			If you open the tutorial jar file you will see these two files in there.
+
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Client :
+		<p>
+			Open up <code class="literal">org.jboss.tutorial.security.client.Client</code>. You'll see that it looks up the stateless bean.
+			Also notice that there is no Home interface and you can begin executing on the stateless bean right away.
+			The client uses a JBoss's SecurityClient class to pass the user name and password:
+			</p>
+            <pre class="programlisting">
+				
+import org.jboss.security.client.SecurityClient;
+import org.jboss.security.client.SecurityClientFactory;
+
+SecurityClient securityClient = SecurityClientFactory.getSecurityClient();
+securityClient.setSimple("kabir", "invalidpassword");
+securityClient.login();
+				
+			</pre>
+            <p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>See the documentation of org.jboss.security.client.SecurityClient for more options</p>
+            </div>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "security" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Kabir is a student.
+     [java] Kabir types in the wrong password
+     [java] Authentication exception, principal=kabir
+     [java] Kabir types in correct password.
+     [java] Kabir does unchecked addition.
+     [java] 1 + 1 = 2
+     [java] Kabir is not a teacher so he cannot do division
+     [java] Insufficient method permissions, principal=kabir, interface=org.jboss.ejb3.EJBContainerInvocation, requiredRoles=[teacher], principalRoles=[student]
+     [java] Students are allowed to do subtraction
+     [java] 1 - 1 = 0
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+				If you want to change the roles for the user, through the roles.properties, you will have to
+				restart the server, for the role changes to take effect. This is because by default JBoss caches the roles for a
+				user and until the cache is flushed, either through this <a xmlns:xlink="http://www.w3.org/1999/xlink" href="http://www.jboss.org/community/docs/DOC-9246">configuration</a>
+				or through server restart, the changes won't take effect.
+			</p>
+            </div>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Secondary_Tables_for_EJB3_Entities.html">
+               <strong>Prev</strong>Chapter 26. Introduction to Secondary tables for ...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Service_POJOs.html">
+               <strong>Next</strong>Chapter 28. Service POJOs (JBoss extension of EJB...</a>
+         </li>
+      </ul>
+   </body>
+</html>

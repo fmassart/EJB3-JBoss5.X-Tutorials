@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 16. Usage of JBoss specific deployment descriptors</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="EJB3_Interceptors.html" title="Chapter 15. Introduction to EJB3 Interceptors"/>
+      <link rel="next" href="Quartz_scheduler_integration.html" title="Chapter 17. Quartz scheduler integration"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="EJB3_Interceptors.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Quartz_scheduler_integration.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="jboss.xml_deployment_descriptor"/>Chapter 16. Usage of JBoss specific deployment descriptors</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		The EJB 3.0 specification supports the usage of deployment descriptors to describe ejb metadata
+		or override most metadata described via annotations. The jboss.xml deployment descriptor describes
+		JBoss specific metadata, including remote and local JNDI names, cluster configuration, a security domain,
+		additional references, security principal, and container configuration. Annotations which define the ejb
+		(e.g. <code class="literal">@Stateful</code>, <code class="literal">@Remote</code>) cannot be overridden.
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		jboss.xml :
+
+		<p>
+			Take a look at <code class="literal">META-INF/jboss.xml</code>.
+			</p>
+            <div class="itemizedlist">
+               <ul>
+                  <li>
+					The <code class="literal">jndi-name</code> element defines the remote JNDI binding for the <code class="literal">ShoppingCartBean</code> stateful session bean.
+					This JNDI binding overrides the default binding or a binding specified through the <code class="literal">@RemoteBinding</code> annotation.
+					Similarly, the <code class="literal">local-jndi-name</code> element specifies the local JNDI binding.
+				</li>
+                  <li>
+					The <code class="literal">clustered</code> element indicates that the ejb is clustered, with <code class="literal">partition-name</code> and
+					<code class="literal">load-balance-policy</code> specifying the cluster name and load balance policy, respectively.
+					These elements will override the parameters specified in the <code class="literal">@Clustered</code> annotation.
+					In this example, you will see that the <code class="literal">ShoppingCartBean</code> ejb is clustered.
+					<div class="note">
+                        <h2>Note</h2>
+						If you build and run this example with the "default" server configuration, the deployment will
+						fail, as the default server configuration does not support clustering. You will have to run this
+						example on the "all" server configuration which supports clustering
+					</div>
+                  </li>
+                  <li>
+					The <code class="literal">security-domain</code> element specifies a security domain for the ejb, overriding
+					any security domain set through the <code class="literal">@SecurityDomain</code> annotation. In this example,
+					you will see that a security domain is set through the jboss.xml deployment descriptor and unless a
+					Principal and Credential (i.e. user/password) is set in the client, requests to the ejb will fail
+					with a javax.ejb.EJBAccessException.
+
+					<div class="note">
+                        <h2>Note</h2>
+						The jboss.xml shows using the security-domain at a bean level as well at the entire deployment level.
+						Each bean can have its own security-domain and will override the one set at the deployment level.
+					</div>
+                  </li>
+               </ul>
+            </div>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "jboss_deployment_descriptor" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure the "all" server configuration of JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Attempting to buy 1 memory stick with incorrect password
+     [java] Caught javax.ejb.EJBAccessException as expected
+     [java] Setting user/password
+     [java] bill is a shopper, so is allowed to buy
+     [java] Buying 1 memory stick
+     [java] Buying another memory stick
+     [java] Buying a laptop
+     [java] Print cart:
+     [java] 2     Memory stick
+     [java] 1     Laptop
+     [java] bill is not a clerk, so is not allowed to price check
+     [java] Caught EJBAccessException as expected
+     [java] Checkout
+     [java] Should throw an object not found exception by invoking on cart after @Remove method
+     [java] Successfully caught no such object exception.
+     [java] Caught javax.ejb.EJBAccessException, for SLSB, as expected
+     [java] Now passing the correct user/password to access the SLSB
+     [java] Successfully accessed SLSB
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="EJB3_Interceptors.html">
+               <strong>Prev</strong>Chapter 15. Introduction to EJB3 Interceptors</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Quartz_scheduler_integration.html">
+               <strong>Next</strong>Chapter 17. Quartz scheduler integration</a>
+         </li>
+      </ul>
+   </body>
+</html>

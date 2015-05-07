@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 33. Table per Class inheritance in EJB3 Entities</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Stateless_Session_Beans_in_EJB3_with_deployment_descriptors.html" title="Chapter 32. Configuring Stateless Session Beans with deployment descriptors in EJB3"/>
+      <link rel="next" href="Timer_service_in_EJB3.html" title="Chapter 34. Introduction to timer service in EJB3"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Stateless_Session_Beans_in_EJB3_with_deployment_descriptors.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Timer_service_in_EJB3.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Table_per_Class_inheritance_in_EJB3_Entities"/>Chapter 33. Table per Class inheritance in EJB3 Entities</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		The EJB3 specification allows you to define entities that inherit from one another. The inheritance
+		relationships can be reflected in queries as well. So, if you queried based on the base class, the
+		query is polymorphic.
+	</p>
+         <p>
+		This tutorial uses the table per class strategy to map an inheritance relationship of
+		<code class="literal">org.jboss.tutorial.tableperinheritance.bean.Pet</code>, which is the base class for
+		<code class="literal">org.jboss.tutorial.tableperinheritance.bean.Cat</code> and <code class="literal">org.jboss.tutorial.tableperinheritance.bean.Dog</code>.
+	</p>
+         <p>
+		With the table per class strategy there is a table per class in the hierarchy, and each table has
+		every single property that particular class will persist.
+	</p>
+         <p>
+		This is what the annotations look like for Pet:
+
+		</p>
+         <pre class="programlisting">
+			
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public class Pet implements java.io.Serializable
+{
+
+...
+			
+		</pre>
+         <p>
+		The subclass annotations look like this:
+
+		</p>
+         <pre class="programlisting">
+			
+@Entity
+public class Dog extends Pet
+{
+...
+			
+
+		</pre>
+         <p>
+
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Polymorphic Queries :
+		<p>
+			
+               <code class="literal">org.jboss.tutorial.tableperinheritance.bean.PetDAOBean</code> stateless EJB wraps some polymorphic queries :
+			</p>
+            <pre class="programlisting">
+				
+public List findByWeight(double weight)
+{
+   return manager.createQuery("from Pet p where p.weight &lt; :weight").setParameter("weight", weight).getResultList();
+}
+
+				
+			</pre>
+            <p>
+			Even though the <code class="literal">findByWeight</code> method queries on Pet, either Dog or Cat instances can be returned.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Table Mapping :
+
+		<p>
+			The table mapping for this example looks like this:
+			</p>
+            <pre class="programlisting">
+				
+create table CAT (
+  ID integer primary key,
+  LIVES int
+  NAME varchar,
+  WEIGHT double
+);
+
+create table DOG (
+  ID integer primary key,
+  NUMBONES int
+  NAME varchar,
+  WEIGHT double
+);
+
+				
+			</pre>
+            <p>
+		
+            </p>
+		The table per class strategy is less efficient than the single table strategy as the SQL query is more complicated.
+	</div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			
+            </p>
+            <div class="important">
+               <h2>Important</h2>
+               <p>
+					Because of a bug in HSQL, this tutorial does not work against the HSQL DB (which
+					JBoss ships by default). Till this is fixed, running the client is not possible.
+					Alternately, you can configure a datasource to use some other database and then
+					use that datasource in the persistence.xml
+				</p>
+            </div>
+            <p>
+			From the command prompt, move to the "tableperinheritance" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure the "default" server configuration of JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+			View the tables and rows:
+
+		<p>
+			You can view the tables created by JBoss by going to the
+			<a xmlns:xlink="http://www.w3.org/1999/xlink" href="http://localhost:8080/jmx-console/HtmlAdaptor?action=inspectMBean&amp;name=jboss%3Aservice%3DHypersonic%2Cdatabase%3DlocalDB">Hypersonic Service</a>,
+			scrolling down to the <code class="literal">startDatabaseManager</code> button and clicking it.
+			A Hypersonic SQL window will be minimized, but you can open it up to look at the tables and do queries.
+
+		</p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Stateless_Session_Beans_in_EJB3_with_deployment_descriptors.html">
+               <strong>Prev</strong>Chapter 32. Configuring Stateless Session Beans w...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Timer_service_in_EJB3.html">
+               <strong>Next</strong>Chapter 34. Introduction to timer service in EJB3</a>
+         </li>
+      </ul>
+   </body>
+</html>

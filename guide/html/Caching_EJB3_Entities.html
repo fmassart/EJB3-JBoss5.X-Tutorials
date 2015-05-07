@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 5. Caching EJB3 Entities</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Blob_and_Clob_support_in_EJB3.html" title="Chapter 4. Introduction to Blob and Clob support in EJB3"/>
+      <link rel="next" href="Callbacks_and_Callback_Handlers.html" title="Chapter 6. Introduction to Callbacks and Callback Handlers in EJB3"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Blob_and_Clob_support_in_EJB3.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Callbacks_and_Callback_Handlers.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Caching_EJB3_Entities"/>Chapter 5. Caching EJB3 Entities</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		This tutorial shows you how to cache your entities using EJB 3.0 for JBoss
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Caching primer :
+
+		<p>
+			To avoid roundtrips to the database, you can use a cache for your entities.
+			JBoss EJB3 uses Hibernate as the JPA implementation which has support for a second-level cache.
+			The Hibernate setup used for our JBoss EJB 3.0 implementation uses JBossCache as its underlying cache
+			implementation. With caching enabled:
+
+			</p>
+            <div class="itemizedlist">
+               <ul>
+                  <li>
+					If you persist an entity (that has caching enabled) to the database via the entity manager
+					the entity will also be added to the cache. Subsequent requests to fetch the entity, with
+					this id, will be retrieved from cache and thus will save a database trip.
+				</li>
+                  <li>
+					If you update an entity (that has caching enabled) and save the changes to the database via
+					the entity manager the entity will also be updated in the cache.
+				</li>
+                  <li>
+					If you remove an entity (that has caching enabled) from the database via the entity manager
+					the entity will also be removed from the cache.
+				</li>
+               </ul>
+            </div>
+            <p>
+			JBossCache allows you to specify timeouts to cached entities. Entities not accessed within a certain
+			amount of time are dropped from the cache in order to save memory.
+		</p>
+            <p>
+			Furthermore, JBossCache supports clustering. If running within a cluster, and the cache is updated,
+			changes to the entries in one node will be replicated to the corresponding entries in the other nodes
+			in the cluster.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Enabling caching and choosing cache :
+		<p>
+			Take a look at <code class="literal">META-INF/persistence.xml</code> which sets up the caching for this deployment:
+			</p>
+            <pre class="programlisting">
+				
+&lt;property name="hibernate.cache.use_second_level_cache" value="true"/&gt;
+&lt;property name="hibernate.cache.use_query_cache" value="true"/&gt;
+&lt;property name="hibernate.cache.region.factory_class" value="org.hibernate.cache.jbc2.JndiMultiplexedJBossCacheRegionFactory"/&gt;
+&lt;property name="hibernate.cache.region.jbc2.cachefactory" value="java:CacheManager"/&gt;
+&lt;property name="hibernate.cache.region.jbc2.cfg.entity" value="mvcc-entity"/&gt;
+&lt;property name="hibernate.cache.region.jbc2.cfg.query" value="local-query"/&gt;
+&lt;property name="hibernate.show_sql" value="true"/&gt;
+				
+			</pre>
+            <p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+				These properties in the persistence.xml enabling caching and also configure JBossCache as the Cache manager.
+				For more details about JBossCache and its configurations, have a look at the JBossCache project documentation.
+			</div>
+            <p>
+
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+				We have intentionally set the <code class="literal">hibernate.show_sql</code> property in the persistence.xml to true.
+				When this property is set, Hibernate will print to STDOUT the sql queries that are fired to the database, when
+				the entity is being operated upon. This will, later on, help us in verifying whether the entity is being picked up
+				from cache or is being loaded from database through a SQL query.
+			</div>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Entities:
+
+		<p>
+			You define your entities <code class="literal">org.jboss.tutorial.cachedentity.bean.Customer</code> and <code class="literal">org.jboss.tutorial.cachedentity.bean.Contact</code> the normal way.
+			The default behaviour is to not cache anything, even with the settings shown above, in the persistence.xml.
+			A very simplified rule of thumb is that you will typically want to do caching for objects that rarely change,
+			and which are frequently read. We also annotate the classes with the <code class="literal">@Cache</code> annotation to
+			indicate that the entities should be cached.
+			</p>
+            <pre class="programlisting">
+				
+@Entity
+@Cache (usage=CacheConcurrencyStrategy.TRANSACTIONAL)
+public class Customer implements java.io.Serializable
+{
+...
+				
+			</pre>
+            <p>
+
+			
+            </p>
+            <pre class="programlisting">
+				
+@Entity
+@Cache (usage=CacheConcurrencyStrategy.TRANSACTIONAL)
+public class Contact implements Serializable
+{
+...
+
+				
+			</pre>
+            <p>
+			This defines that the Customer and the Contact entities need to be cached. Any attempt to look up
+			<code class="literal">Customer</code> or <code class="literal">Contact</code> by their primary key, will first attempt
+			to read the entry from the cache. If it cannot be found it will try and load it up from the database.
+		</p>
+            <p>
+			You can also cache relationship collections. Any attempt to access the <code class="literal">contacts</code> collection of
+			<code class="literal">Customer</code> will attempt to load the data from the cache before hitting the database:
+			</p>
+            <pre class="programlisting">
+				
+
+@Entity
+@Cache (usage=CacheConcurrencyStrategy.TRANSACTIONAL)
+public class Customer implements java.io.Serializable
+{
+...
+
+   @Cache (usage=CacheConcurrencyStrategy.TRANSACTIONAL)
+   @OneToMany(mappedBy="customer", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+   public Set&lt;Contact&gt; getContacts()
+   {
+      return contacts;
+   }
+...
+}
+				
+
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Client :
+		<p>
+			Open <code class="literal">org.jboss.tutorial.cachedentity.client.CachedEntityRun</code>. It takes two arguments, they are the
+			server:jndiport of the two nodes to use. If you look at the 'run' target of <code class="literal">META-INF/build.xml</code>
+			you will see that they both default to localhost:1099, so in this case node1 and node2 will be the same,
+			i.e. no clustering takes place.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "cachedentity" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure the "all" server configuration of JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Saving customer to node1 = localhost:1099
+     [java] Looking for customer on node2 = localhost:1099 (should be available in cache)
+     [java] Found customer on node2 (cache). Customer details follow:
+     [java] Customer: id=1; name=JBoss
+     [java]     Contact: id=2; name=Kabir
+     [java]     Contact: id=1; name=Bill
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Maven Users: Make sure the AS is not running.
+	        </div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <p>
+		On the server you will notice these logs:
+		</p>
+         <pre class="programlisting">
+			
+02:14:04,528 INFO  [STDOUT] Hibernate: insert into Customer (id, name) values (null, ?)
+02:14:04,529 INFO  [STDOUT] Hibernate: call identity()
+02:14:04,542 INFO  [STDOUT] Hibernate: insert into Contact (id, CUST_ID, name, tlf) values (null, ?, ?, ?)
+02:14:04,543 INFO  [STDOUT] Hibernate: call identity()
+02:14:04,544 INFO  [STDOUT] Hibernate: insert into Contact (id, CUST_ID, name, tlf) values (null, ?, ?, ?)
+02:14:04,545 INFO  [STDOUT] Hibernate: call identity()
+02:14:04,545 INFO  [EntityTestBean] Created customer named JBoss with 2 contacts
+02:14:04,634 INFO  [EntityTestBean] Find customer with id = 1
+02:14:04,645 INFO  [STDOUT] Hibernate: select customer0_.id as id0_1_, customer0_.name as name0_1_, contacts1_.CUST_ID as CUST4_3_, contacts1_.id as id3_, contacts1_.id as id1_0_, contacts1_.CUST_ID as CUST4_1_0_, contacts1_.name as name1_0_, contacts1_.tlf as tlf1_0_ from Customer customer0_ left outer join Contact contacts1_ on customer0_.id=contacts1_.CUST_ID where customer0_.id=?
+02:14:04,682 INFO  [EntityTestBean] Customer with id = 1 found
+02:14:04,756 INFO  [EntityTestBean] Find customer with id = 1
+02:14:04,801 INFO  [EntityTestBean] Customer with id = 1 found
+
+			
+
+		</pre>
+         <p>
+		As you can see, the first time the customer with id = 1 was being requested through the entity manager, a database query was fired to
+		fetch it, since it was not available in cache. The Customer object was then loaded from the database and stored in the cache. As can be
+		seen in the next request to fetch the customer with the same id. This request to the entity manager, pulls up the entity from the cache
+		instead of firing a database query.
+	</p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Blob_and_Clob_support_in_EJB3.html">
+               <strong>Prev</strong>Chapter 4. Introduction to Blob and Clob support ...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Callbacks_and_Callback_Handlers.html">
+               <strong>Next</strong>Chapter 6. Introduction to Callbacks and Callback...</a>
+         </li>
+      </ul>
+   </body>
+</html>

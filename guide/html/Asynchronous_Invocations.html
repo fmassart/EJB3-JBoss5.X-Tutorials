@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 36. Asynchronous proxy for EJBs - JBoss specific extension to EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Hibernate_Session_In_EJB3.html" title="Chapter 35. Injecting Hibernate Session and Session Factory in JBoss EJB3"/>
+      <link rel="next" href="Partial_deployment_descriptor.html" title="Chapter 37. Partial Deployment Descriptors"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Hibernate_Session_In_EJB3.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Partial_deployment_descriptor.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Asynchronous_Invocations"/>Chapter 36. Asynchronous proxy for EJBs - JBoss specific extension to EJB3</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+         A JBoss extension to EJB 3.0 is that from the remote or local interface of a stateful session bean,
+         stateless session bean or service bean you can obtain an asynchronous proxy. Methods called
+         on the asynchronous proxy will be executed asynchronously, and the results can be obtained later on.
+
+      </p>
+         <div class="important">
+            <h2>Important</h2>
+            <p>
+      		This JBoss specific feature of obtaining a asynchronous proxy to invoke any method on the bean asynchronously
+      		is NOT the same as the Asynchronous Methods feature in EJB 3.1. In EJB 3.1, you can mark your bean business methods
+      		to be asynchronous by using the @Asynchronous annotation.
+      	</p>
+         </div>
+         <p>
+      
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+      	Example :
+      	<p>
+      		Take a look at <code class="literal">org.jboss.tutorial.asynch.bean.Echo</code> and <code class="literal">org.jboss.tutorial.asynch.bean.EchoBean</code>.
+      		They define a normal stateless session bean with a remote interface, nothing special. Now take a look at
+      		<code class="literal">org.jboss.tutorial.asynch.client.Client</code>. It shows an example of asynchronous calls on a remote interface.
+      		We will walk through what it does here. The following lines just obtain the remote interface of the bean and call a method
+      		following the standard synchronous usage pattern:
+      		</p>
+            <pre class="programlisting">
+      			
+InitialContext ctx = new InitialContext();
+Echo echo = (Echo) ctx.lookup("EchoBean/remote");
+System.out.println("-------- Synchronous call");
+String ret = echo.echo("normal call");
+System.out.println(ret);
+
+      			
+
+      		</pre>
+            <p>
+
+      		Next we obtain the asynchronous proxy and make a call via that. The method will be invoked asynchronously :
+      		</p>
+            <pre class="programlisting">
+      			
+Echo asynchEcho = org.jboss.ejb3.common.proxy.plugins.async.AsyncUtils.mixinAsync(echo);
+System.out.println("-------- Asynchronous call");
+ret = asynchEcho.echo("asynchronous call");
+System.out.println("Direct return of async invocation is: " + ret);
+
+      			
+      		</pre>
+            <p>
+      		We use the <code class="literal">org.jboss.ejb3.common.proxy.plugins.async.AsyncUtils</code>'s <code class="literal">mixinAsync</code> method to
+      		create the asynchronous proxy. All methods invoked on this proxy are invoked asynchronously, and the returned value will
+      		always be null (or 0 in the case of numeric primitive types). In this example, the echo() method called has low overhead,
+      		but imagine if this was a method that took a long time. In this case it would be good to be able to go ahead with some other tasks.
+      	</p>
+            <p>
+      		In Client.java, we make another call on the normal remote interface while "waiting" for the asynchronous call:
+
+      		</p>
+            <pre class="programlisting">
+      			
+System.out.println("-------- Synchronous call");
+ret = echo.echo("normal call 2");
+System.out.println(ret);
+      			
+      		</pre>
+            <p>
+
+      		Now that we have finished everything we want to do, while waiting for the asynchronus call to complete, we invoke the
+      		<code class="literal">getFutureResult(asynchProxy)</code> API on the <code class="literal">org.jboss.ejb3.common.proxy.plugins.async.AsyncUtils</code>.
+      		This will return us an instance of <code class="literal">java.util.concurrent.Future</code>. To obtain the final result of the asynchronous
+      		call, we invoke the <code class="literal">get()</code> API on the returned <code class="literal">java.util.concurrent.Future</code> object.
+
+      		</p>
+            <pre class="programlisting">
+      			
+System.out.println("-------- Result of Asynchronous call");
+Future&lt;String&gt; future = (Future&lt;String&gt;) AsyncUtils.getFutureResult(asynchEcho);
+
+// blocking call
+ret = (String) future.get();
+System.out.println(ret);
+
+      			
+      		</pre>
+            <p>
+      		
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+      				The java.util.concurrent.Future.get() API is blocking and if the asynchronous operation is not yet done, it will wait
+      				for the operation to complete.
+      			</p>
+            </div>
+            <p>
+
+      	
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running
+	</div>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+	To build and run the example, make sure you have installed JBoss 5.x.
+	See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+			From the command prompt, move to the "asynch" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+	</div>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <pre class="programlisting">
+	
+$ ant
+$ ant run
+
+run:
+     [java] -------- Synchronous call
+     [java] normal call
+     [java] -------- Asynchronous call
+     [java] Direct return of async invocation is: null
+     [java] -------- Synchronous call
+     [java] normal call 2
+     [java] -------- Result of Asynchronous call
+     [java] asynchronous call
+
+     
+	</pre>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Hibernate_Session_In_EJB3.html">
+               <strong>Prev</strong>Chapter 35. Injecting Hibernate Session and Sessi...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Partial_deployment_descriptor.html">
+               <strong>Next</strong>Chapter 37. Partial Deployment Descriptors</a>
+         </li>
+      </ul>
+   </body>
+</html>

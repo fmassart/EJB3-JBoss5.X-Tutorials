@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 35. Injecting Hibernate Session and Session Factory in JBoss EJB3</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Timer_service_in_EJB3.html" title="Chapter 34. Introduction to timer service in EJB3"/>
+      <link rel="next" href="Asynchronous_Invocations.html" title="Chapter 36. Asynchronous proxy for EJBs - JBoss specific extension to EJB3"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Timer_service_in_EJB3.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Asynchronous_Invocations.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Hibernate_Session_In_EJB3"/>Chapter 35. Injecting Hibernate Session and Session Factory in JBoss EJB3</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+
+		Persistent classes that are mapped using Hibernate *.hbm.xml files are supported in JBoss. The EJB3 Deployer will search the archive
+		for any <code class="literal">.hbm.xml</code> files and add them to the definition of the underlying Hibernate SessionFactory. These
+         <code class="literal">.hbm.xml</code> files can be virtually anywhere within the archive under any java package or directory.
+		Take a look at the <code class="literal">customer.hbm.xml</code> for an example.
+	</p>
+         <p>
+         Class mappings defined in <code class="literal">.hbm.xml</code> files can be managed by EntityManagers just as annotated
+         @Entity beans are.  Also, you are allowed to have relationships between a <code class="literal">.hbm.xml</code>
+         mapped class and an EJB3 entity.  So, mixing/matching is allowed. Which means you can have some entities defined in .hbm.xml and
+         some others through @Entity annotations.
+     </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+      Injecting Hibernate Session and SessionFactory :
+      <p>
+         You can inject a <code class="literal">org.hibernate.Session</code> and <code class="literal">org.hibernate.SessionFactory</code>
+         directly into your EJBs just as you can do with EntityManagers and EntityManagerFactorys. The behavior of a Session is
+         just the same as the behavior of an injected EntityManager.  The application server controls the lifecycle of the
+         Session so that you do not have to open, flush, or close the session.  Extended persistence contexts also work
+         with injected Hibernate Sessions.
+         </p>
+            <pre class="programlisting">
+         	
+import org.hibernate.Query;
+import org.hibernate.Session;
+
+@Stateless
+@Remote(CustomerRemote.class)
+@RemoteBinding(jndiBinding = "CustBean")
+public class CustomerBean implements CustomerRemote
+{
+
+   @PersistenceContext
+   private Session session;
+
+         	
+         </pre>
+            <p>
+         Take a look at <code class="literal">org.jboss.tutorial.hibernate.bean.CustomerBean</code> for more details.
+      </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+      Accessing org.hibernate.Session and org.hibernate.Query from EntityManager:
+      <p>
+         You can get access to the current underlying Hibernate Session by calling the <code class="literal">getDelegate</code> method on the
+         EntityManager :
+
+      	</p>
+            <pre class="programlisting">
+      		
+@Stateless
+@Remote(CustomerRemote.class)
+@RemoteBinding (jndiBinding="AnotherCustBean")
+public class AnotherCustomerBean implements CustomerRemote
+{
+
+   @PersistenceContext
+   private EntityManager em;
+
+   public Customer getCustomer(long id)
+   {
+      org.hibernate.Session session = (Session) em.getDelegate();
+      return (Customer) session.get(Customer.class, id);
+   }
+...
+			
+      	</pre>
+            <p>
+      	Take a look at <code class="literal">org.jboss.tutorial.hibernate.bean.AnotherCustomerBean</code> for more details.
+   </p>
+            <p>
+         You can get access to the current underlying Hibernate Query by typecasting your reference to a <code class="code">org.hibernate.ejb.QueryImpl</code>.
+
+		</p>
+            <pre class="programlisting">
+      		
+public List&lt;Customer&gt; getCustomers(String fname)
+{
+   org.hibernate.ejb.QueryImpl queryImpl = (QueryImpl) em.createQuery("from Customer where fname ='" + fname + "'");
+   org.hibernate.Query query = queryImpl.getHibernateQuery();
+   return query.list();
+}
+
+			
+      </pre>
+            <p>
+	
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running
+	</div>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+	To build and run the example, make sure you have installed JBoss 5.x.
+	See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+			From the command prompt, move to the "hibernate" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+	</div>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <pre class="programlisting">
+	
+$ ant
+$ ant run
+
+run:
+     [java] Jai Pai created with id = 1
+     [java] Jaikiran Pai created with id = 2
+     [java] Jai NoLastName created with id = 3
+     [java] Searching for customer with id = 2
+     [java] Found customer Jaikiran Pai with id = 2
+     [java] Searching for customer with id = 3
+     [java] Found customer Jai NoLastName with id = 3
+     [java] Searching for customers with first name Jai
+     [java] Found 2 customers with first name Jai
+     [java] Searching for customers with first name Jaikiran
+     [java] Found 1 customers with first name Jaikiran
+
+     
+	</pre>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Timer_service_in_EJB3.html">
+               <strong>Prev</strong>Chapter 34. Introduction to timer service in EJB3</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Asynchronous_Invocations.html">
+               <strong>Next</strong>Chapter 36. Asynchronous proxy for EJBs - JBoss s...</a>
+         </li>
+      </ul>
+   </body>
+</html>

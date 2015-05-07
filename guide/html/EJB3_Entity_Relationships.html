@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 24. Introduction to relationships between EJB3 entities</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="EJB2.1_and_EJB3_references.html" title="Chapter 23. Referencing EJB3 beans in EJB2.1 and vice versa"/>
+      <link rel="next" href="Using_resource_references_in_EJB3.html" title="Chapter 25. Introduction to binding the resources to ENC of EJB3 beans"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="EJB2.1_and_EJB3_references.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Using_resource_references_in_EJB3.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="EJB3_Entity_Relationships"/>Chapter 24. Introduction to relationships between EJB3 entities</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		The "entity" tutorial only showed one-to-many and many-to-one relationships.
+		This tutorial will show you one-to-one and many-to-many relationships.
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		One-to-One :
+		<p>
+			There is a unidirectional one-to-one relationship defined between the <code class="literal">org.jboss.tutorial.relationships.bean.Customer</code>
+			and <code class="literal">org.jboss.tutorial.relationships.bean.Address</code>. Customer defines the uni-directional relationship.
+		</p>
+            <pre class="programlisting">
+			
+@OneToOne(cascade = {CascadeType.ALL})
+@JoinColumn(name = "ADDRESS_ID")
+public Address getAddress()
+{
+   return address;
+}
+
+			
+		</pre>
+            <p>
+			
+               <code class="literal">CascadeType.ALL</code> specifies that when a Customer is created, if there is any
+			Address association, then that Address will be created as well(<code class="literal">CascadeType.PERSIST</code>).
+			If the Customer is deleted from persistence storage, the Address will be deleted(<code class="literal">CascadeType.REMOVE</code>).
+			If a Customer instance is re-attached to persistence storage, any changes to the Address collection will be merged with
+			persistence storage (<code class="literal">CascadeType.MERGE</code>).
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Many-To-Many :
+		<p>
+			There is a many-to-many relationship between <code class="literal">org.jboss.tutorial.relationships.bean.Customer</code>
+			and <code class="literal">org.jboss.tutorial.relationships.bean.Flight</code>. In order to have a many-to-many relationship
+			there needs to be a distinct join table that maps the many-to-many relationship. This is called an association table.
+			 You can have JBoss automatically generate the association table for you, or you can use the <code class="literal">@JoinTable</code>
+			 annotation to define it yourself. If you use <code class="literal">@JoinTable</code> it must be defined on both sides of the
+			 bi-directional relationship.  Let's look at the Customer side of the relationship:
+			 </p>
+            <pre class="programlisting">
+			 	
+@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER, mappedBy="customers")
+			 	
+			 </pre>
+            <p>
+			 
+            </p>
+            <p>
+			 	The <code class="literal">mappedBy</code> attribute states that the <code class="literal">Flight.customers</code> property is responsible
+			 	for mapping and managing the relationship. The spec allows for multiple join and inverse join columns.
+			 	See the "Composite Primary Key" tutorial for more information.
+			</p>
+            <p>
+			Let's look at the other side of the relationship in Flight.
+			</p>
+            <pre class="programlisting">
+				
+@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+@JoinTable(table = @Table(name = "flight_customer_table"),
+                  joinColumns = {@JoinColumn(name = "FLIGHT_ID")},
+                  inverseJoinColumns = {@JoinColumn(name = "CUSTOMER_ID")})
+public Set&lt;Customer&gt; getCustomers()
+{
+   return customers;
+}
+
+				
+			</pre>
+            <p>
+			The database associate table will look like this:
+
+			</p>
+            <pre class="programlisting">
+				
+create table FLIGHT_CUSTOMER_TABLE (
+      CUSTOMER_ID integer,
+      FLIGHT_ID integer
+   );
+				
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "relationships" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] Air France customers
+     [java] Bill
+     [java] Monica
+     [java] USAir customers
+     [java] Molly
+
+
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+			View the tables and rows:
+
+		<p>
+			You can view the tables created by JBoss by going to the
+			<a xmlns:xlink="http://www.w3.org/1999/xlink" href="http://localhost:8080/jmx-console/HtmlAdaptor?action=inspectMBean&amp;name=jboss%3Aservice%3DHypersonic%2Cdatabase%3DlocalDB">Hypersonic Service</a>,
+			scrolling down to the <code class="literal">startDatabaseManager</code> button and clicking it.
+			A Hypersonic SQL window will be minimized, but you can open it up to look at the tables and do queries.
+
+		</p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="EJB2.1_and_EJB3_references.html">
+               <strong>Prev</strong>Chapter 23. Referencing EJB3 beans in EJB2.1 and ...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Using_resource_references_in_EJB3.html">
+               <strong>Next</strong>Chapter 25. Introduction to binding the resources...</a>
+         </li>
+      </ul>
+   </body>
+</html>

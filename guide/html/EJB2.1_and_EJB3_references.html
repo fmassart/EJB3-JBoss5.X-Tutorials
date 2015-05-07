@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 23. Referencing EJB3 beans in EJB2.1 and vice versa</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Merging_and_Basic_Queries_on_entities.html" title="Chapter 22. Introduction to merging and querying of entities in EJB3"/>
+      <link rel="next" href="EJB3_Entity_Relationships.html" title="Chapter 24. Introduction to relationships between EJB3 entities"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Merging_and_Basic_Queries_on_entities.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="EJB3_Entity_Relationships.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="EJB2.1_and_EJB3_references"/>Chapter 23. Referencing EJB3 beans in EJB2.1 and vice versa</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		EJB3 beans may reference EJB2.1 and vice versa. This tutorial demonstrates mechanisms for such references.
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		EJB2.1 referencing EJB3:
+		<p>
+		 To start, take a look at the EJB3 SLSB <code class="literal">org.jboss.tutorial.reference21_30.bean.Stateless3Bean</code>,
+		 the EJB2.1 SLSB <code class="literal">org.jboss.tutorial.reference21_30.bean.Stateless2Bean</code>
+		and the deployment descriptors for the EJB2.1 SLSB <code class="literal">ejb21_app/src/main/resources/META-INF/ejb-jar.xml</code> and
+		<code class="literal">ejb21_app/src/main/resources/META-INF/jboss.xml</code>:
+
+			</p>
+            <pre class="programlisting">
+				
+&lt;session&gt;
+   	&lt;ejb-name&gt;ejb/Stateless2&lt;/ejb-name&gt;
+   	&lt;home&gt;org.jboss.tutorial.reference21_30.bean.Stateless2Home&lt;/home&gt;
+   	&lt;remote&gt;org.jboss.tutorial.reference21_30.bean.Stateless2&lt;/remote&gt;
+   	&lt;ejb-class&gt;org.jboss.tutorial.reference21_30.bean.Stateless2Bean&lt;/ejb-class&gt;
+   	&lt;session-type&gt;Stateless&lt;/session-type&gt;
+   	&lt;transaction-type&gt;Container&lt;/transaction-type&gt;
+    &lt;ejb-ref&gt;
+			&lt;ejb-ref-name&gt;ejb/Stateless3&lt;/ejb-ref-name&gt;
+			&lt;ejb-ref-type&gt;Session&lt;/ejb-ref-type&gt;
+			&lt;home&gt;org.jboss.tutorial.reference21_30.bean.Stateless3Home&lt;/home&gt;
+			&lt;remote&gt;org.jboss.tutorial.reference21_30.bean.Stateless3&lt;/remote&gt;
+	&lt;/ejb-ref&gt;
+&lt;/session&gt;
+				
+			</pre>
+            <p>
+			
+            </p>
+            <div class="important">
+               <h2>Important</h2>
+               <p>
+					Notice, the ejb-jar.xml use a 2.x dtd for this EJB2.x application:
+					</p>
+               <pre class="programlisting">
+						
+&lt;!DOCTYPE ejb-jar PUBLIC "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 2.0//EN"
+                         "http://java.sun.com/dtd/ejb-jar_2_0.dtd"&gt;
+						
+					</pre>
+               <p>
+				
+               </p>
+            </div>
+            <p>
+
+			The <code class="literal">ejb-ref</code> element references the 3.0 EJB. This mapping will make available the <code class="literal">Stateless3</code> bean
+			in the ENC (java:comp/env) namespace of the <code class="literal">Stateless2</code> EJB.
+
+			</p>
+            <div class="important">
+               <h2>Important</h2>
+               <p>
+					Observe carefully, the use of <code class="literal">&lt;home&gt;</code> and <code class="literal">&lt;remote&gt;</code> in the <code class="literal">ejb-ref</code>.
+					Remember that we can provide a EJB2.1 view for an EJB3 bean. See the "ejb21_client_adaptors" for more details. We have intentionally
+					exposed the home and remote view for the EJB3 Stateless3Bean so that it can be referenced by a EJB2.1 bean, without which the EJB2.1
+					bean would not have been able to reference this bean through its local ENC (because the home/remote are mandatory for a ejb-ref for EJB2.1 app)
+					</p>
+               <pre class="programlisting">
+						
+@Stateless
+@RemoteHome(Stateless3Home.class)
+public class Stateless3Bean
+{
+...
+						
+					</pre>
+               <p>
+
+					
+               </p>
+               <pre class="programlisting">
+						
+public interface Stateless3Home extends EJBHome
+{
+
+   public Stateless3Remote create() throws java.rmi.RemoteException, javax.ejb.CreateException;
+...
+						
+					</pre>
+               <p>
+				
+               </p>
+            </div>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		EJB3 referencing EJB2.1 bean:
+
+		<p>
+			Two mechanisms for referencing EJB2.1 from a EJB3 are demonstrated. The first mechanism uses annotations exclusively.
+			Note the <code class="literal">@EJBs</code> annotation on <code class="literal">org.jboss.tutorial.reference21_30.bean.Stateless3Bean</code>.
+			The <code class="literal">name</code> parameter for the <code class="literal">@EJB</code> specifies the name with which the 2.1 EJB will be bound
+			in the ENC (java:comp/env) namespace of the <code class="literal">Stateless3Bean</code>. The <code class="literal">mapped-name</code> parameter
+			specifies the global JNDI binding of the 2.1 EJB.
+			</p>
+            <pre class="programlisting">
+				
+@EJBs(
+{@EJB(name = "injected/Stateless2", mappedName = "Stateless2")})
+public class Stateless3Bean
+{
+...
+				
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+					The <code class="literal">testAccess</code> method in the <code class="literal">Stateless3Bean</code> looks up this EJB2.1 using the
+					ENC jndi-name:
+					</p>
+               <pre class="programlisting">
+						
+Stateless2Home home = (Stateless2Home) jndiContext.lookup(Container.ENC_CTX_NAME + "/env/injected/Stateless2");
+Stateless2 test2 = home.create();
+						
+					</pre>
+               <p>
+					Also note that since the bean being looked up is a EJB2.1 bean, the lookup will return the home interface of the bean.
+				</p>
+            </div>
+            <p>
+
+			The second mechanism of referencing a EJB2.1 bean in a EJB3 bean is through the deployment descriptors. Take a look at the
+			<code class="literal">ejb3_app/src/main/resources/META-INF/ejb-jar.xml</code> and <code class="literal">ejb3_app/src/main/resources/META-INF/jboss.xml</code>
+			
+            </p>
+            <pre class="programlisting">
+				
+&lt;session&gt;
+	&lt;ejb-name&gt;Stateless3Bean&lt;/ejb-name&gt;
+	&lt;ejb-ref&gt;
+		&lt;ejb-ref-name&gt;ejb/Stateless2&lt;/ejb-ref-name&gt;
+		&lt;ejb-ref-type&gt;Session&lt;/ejb-ref-type&gt;
+	&lt;/ejb-ref&gt;
+&lt;/session&gt;
+				
+			</pre>
+            <p>
+			
+            </p>
+            <div class="important">
+               <h2>Important</h2>
+               <p>
+					The ejb-jar.xml should use the ejb-jar 3.0 xsd:
+					</p>
+               <pre class="programlisting">
+						
+&lt;ejb-jar
+        xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                            http://java.sun.com/xml/ns/javaee/ejb-jar_3_0.xsd"
+        version="3.0"&gt;
+        				
+					</pre>
+               <p>
+				
+               </p>
+            </div>
+            <p>
+			This binds the Stateless2 bean to the ENC (java:comp/env) namespace of the Stateless3Bean. Also take a look at the
+			<code class="literal">ejb3_app/src/main/resources/META-INF/jboss.xml</code> which maps the global jndi name of the Stateless2
+			bean with the ejb-ref-name.
+
+			</p>
+            <pre class="programlisting">
+				
+&lt;session&gt;
+	&lt;ejb-name&gt;Stateless3Bean&lt;/ejb-name&gt;
+	&lt;ejb-ref&gt;
+		&lt;ejb-ref-name&gt;ejb/Stateless2&lt;/ejb-ref-name&gt;
+		&lt;jndi-name&gt;Stateless2&lt;/jndi-name&gt;
+	&lt;/ejb-ref&gt;
+&lt;/session&gt;
+				
+			</pre>
+            <p>
+			This reference is then used to inject the Stateless2 bean in the Stateless3Bean using <code class="literal">@EJB</code> annotation:
+			</p>
+            <pre class="programlisting">
+				
+@EJB (name="ejb/Stateless2")
+private Stateless2Home stateless2Home;
+
+				
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+				The <code class="literal">org.jboss.tutorial.reference21_30.bean.Stateless3Bean</code> also exposes a business-remote interface, so
+				that the <code class="literal">org.jboss.tutorial.reference21_30.servlet.EJBReferenceServlet</code> can use the business-remote interface.
+				<pre class="programlisting">
+					
+@Stateless
+@Remote(Stateless3.class)
+@RemoteBinding(jndiBinding = "Stateless3")
+public class Stateless3Bean
+{
+...
+					
+				</pre>
+            </div>
+            <p>
+
+			
+            </p>
+            <div class="important">
+               <h2>Important</h2>
+               <p>
+					There's a very important difference between the <code class="literal">remote</code> and a <code class="literal">business-remote</code>
+					interface. The EJB2.x remote interfaces, which extend from EJBObject, are referred through the <code class="literal">&lt;remote&gt;</code>
+					tag in the ejb-jar.xml. On the other hand, the EJB3 style Plain Old Java Interface which is implemented by your EJB3 style
+					POJO bean is known as the business-remote interface and is represented by the <code class="literal">@Remote</code> and it's
+					corresponding <code class="literal">&lt;business-remote&gt;</code> tag in ejb-jar.xml.
+
+					Similar is the case with <code class="literal">&lt;local&gt;</code> and the <code class="literal">&lt;business-local&gt;</code> tags in ejb-jar.xml.
+				</p>
+            </div>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running
+	</div>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+	To build and run the example, make sure you have installed JBoss 5.x.
+	See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+			From the command prompt, move to the "reference21_30" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+	</div>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <pre class="programlisting">
+	
+$ ant
+     
+	</pre>
+         <p>
+		This will deploy the ear into the JBossAS-5.x server ("default" configuration).
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		To access the servlet, open a web browser and enter <a xmlns:xlink="http://www.w3.org/1999/xlink" href="http://localhost:8080/jboss-ejb3-tutorial-reference21_30_webapp">http://localhost:8080/jboss-ejb3-tutorial-reference21_30_webapp</a>.
+		This will bring up a page where you can click on the <code class="literal">Test</code> button to check that the EJB2.1 and EJB3 beans are referencing
+		each other.
+	</div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+         <p>
+		This will create the EAR in the <code class="literal">target</code> folder of the tutorial. Copy this EAR to the deploy folder of JBossAS-5.x
+		and start the server (if it's already not started). Then follow the steps mentioned above, to access the servlet from the web browser.
+	</p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Merging_and_Basic_Queries_on_entities.html">
+               <strong>Prev</strong>Chapter 22. Introduction to merging and querying ...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="EJB3_Entity_Relationships.html">
+               <strong>Next</strong>Chapter 24. Introduction to relationships between...</a>
+         </li>
+      </ul>
+   </body>
+</html>

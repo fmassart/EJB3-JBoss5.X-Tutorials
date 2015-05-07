@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 18. Binding your beans in JNDI</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Quartz_scheduler_integration.html" title="Chapter 17. Quartz scheduler integration"/>
+      <link rel="next" href="Join_Inheritance_in_EJB3_Entities.html" title="Chapter 19. Introduction Join Inheritance in EJB3 Entities"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Quartz_scheduler_integration.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Join_Inheritance_in_EJB3_Entities.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="JNDI_Bindings"/>Chapter 18. Binding your beans in JNDI</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		By default, when the application is deployed in a jar, session beans will bind to JNDI in the form <code class="literal">ejbName/remote</code> for remote
+		interfaces and <code class="literal">ejbName/local</code> in the case of local interfaces. When the EJBs are deployed in an .ear file, the default
+		jndi binding will be prepended by the name of the .ear file.  So if the ear file name is <code class="literal">foo.ear</code> the default jndi
+		names would be <code class="literal">foo/EJB-NAME/remote</code> and <code class="literal">foo/EJB-NAME/local</code>. You can override this behavior
+		by defining your own <code class="literal">@org.jboss.ejb3.annotation.LocalBinding</code> and/or <code class="literal">@org.jboss.ejb3.annotation.RemoteBinding</code>.
+
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Local Interface JNDI Binding :
+		<p>
+			To change the JNDI name for your local interface use the <code class="literal">@org.jboss.ejb3.annotation.LocalBinding</code> annotation.
+			</p>
+            <pre class="programlisting">
+				
+@Stateless
+@LocalBinding(jndiBinding="custom/MySession")
+public class MySessionBean implements MySession
+{
+}
+
+				
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Remote Interface JNDI Binding :
+		<p>
+			To change the JNDI name for your remote interface use the <code class="literal">@org.jboss.ejb3.annotation.RemoteBinding</code> annotation.
+
+			</p>
+            <pre class="programlisting">
+				
+@Stateless
+@RemoteBinding(jndiBinding="custom/remote/MySession")
+public class MySessionBean implements MySession
+{
+}
+
+				
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Persistence unit JNDI Bindings :
+		<p>
+			Persistence units are not bound into JNDI by default. You can bind them by defining some jboss specific properties
+			in persistence.xml.
+			</p>
+            <pre class="programlisting">
+				
+&lt;persistence&gt;
+   &lt;persistence-unit name="manager1"&gt;
+      &lt;jta-data-source&gt;java:/DefaultDS&lt;/jta-data-source&gt;
+      &lt;jar-file&gt;MyApp.jar&lt;/jar-file&gt;
+      &lt;class&gt;org.acme.Employee&lt;/class&gt;
+      &lt;class&gt;org.acme.Person&lt;/class&gt;
+      &lt;class&gt;org.acme.Address&lt;/class&gt;
+      &lt;properties&gt;
+         &lt;property name="jboss.entity.manager.jndi.name" value="java:/Manager1"/&gt;
+         &lt;property name="jboss.entity.manager.factory.jndi.name" value="java:/Manager1Factory"/&gt;
+      &lt;/properties&gt;
+   &lt;/persistence-unit&gt;
+&lt;/persistence&gt;
+
+				
+			</pre>
+            <p>
+
+		
+            </p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Client :
+		<p>
+			Open up <code class="literal">org.jboss.tutorial.jndibinding.client.Client</code>.
+			You'll see that it looks up the stateless bean under "Calculator". Also notice that there is no Home interface
+			and you can begin executing on the stateless bean right away.
+		</p>
+         </div>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+
+Building and Running
+	<p>
+			
+            </p>
+            <div class="note">
+               <h2>Note</h2>
+               <p>
+						To build and run the example, make sure you have installed JBoss 5.x.
+						See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+					</p>
+            </div>
+            <p>
+			From the command prompt, move to the "jndibinding" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+		Ant Users:
+			</div>
+            <p>
+				
+            </p>
+            <p>
+				Make sure your JBossAS-5.x is running
+				</p>
+            <p>
+			
+            </p>
+            <pre class="programlisting">
+			
+$ ant
+$ ant run
+
+run:
+     [java] 1 + 1 = 2
+     [java] 1 - 1 = 0
+
+		     
+			</pre>
+            <p>
+
+			
+            </p>
+            <div class="sect5" lang="en">
+               <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+            <p>
+
+	
+            </p>
+            <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+			</pre>
+            <p>
+		
+            </p>
+         </div>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Quartz_scheduler_integration.html">
+               <strong>Prev</strong>Chapter 17. Quartz scheduler integration</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Join_Inheritance_in_EJB3_Entities.html">
+               <strong>Next</strong>Chapter 19. Introduction Join Inheritance in EJB3...</a>
+         </li>
+      </ul>
+   </body>
+</html>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 14. Introduction to dependency injection</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Extended_Persistence_Contexts.html" title="Chapter 13. Introduction to Extended Persistence Contexts"/>
+      <link rel="next" href="EJB3_Interceptors.html" title="Chapter 15. Introduction to EJB3 Interceptors"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Extended_Persistence_Contexts.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="EJB3_Interceptors.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Dependency_Injection"/>Chapter 14. Introduction to dependency injection</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+		To facilitate test driven development, the EJB 3.0 specification allows you to use annotations to inject
+		dependencies through annotations on fields or setter methods. Instead of complicated XML ejb-refs or resource refs,
+		you can use the <code class="literal">@EJB</code> and <code class="literal">@Resource</code> annotations to set the value of a
+		field or to call a setter method within your session bean with anything registered within JNDI.
+		You can use the <code class="literal">@EJB</code> annotation to inject EJB references and <code class="literal">@Resource</code> to access datasources.
+	</p>
+         <p>
+		Open up <code class="literal">org.jboss.tutorial.injection.bean.ShoppingCartBean</code>.
+		ShoppingCartBean uses the Calculator stateless session EJB to do calculations. The example shows two ways to get access
+		to the Calculator EJB.  One is:
+
+		</p>
+         <pre class="programlisting">
+			
+@EJB
+private Calculator calculator;
+			
+		</pre>
+         <p>
+
+		When the ShoppingCartBean instance is created, the EJB container will set the calculator field using the jndiName
+		of that particular referenced EJB.
+	</p>
+         <p>
+		You are not limited to injecting dependencies on fields. You can also use @EJB on a setter method. The below example from
+		ShoppingCartBean uses the <code class="literal">@EJB</code> annotation to inject the reference to the Calculator session bean:
+
+		</p>
+         <pre class="programlisting">
+			
+private Calculator set;
+
+@EJB(beanName="org.jboss.tutorial.injection.bean.CalculatorBean")
+public void setCalculator(Calculator c)
+{
+   set = c;
+}
+
+			
+		</pre>
+         <p>
+	
+         </p>
+         <p>
+		The <code class="literal">@javax.annotation.Resource</code> annotation allows you to inject resources.
+
+		</p>
+         <pre class="programlisting">
+		
+@Resource(mappedName="DefaultDS")
+private javax.sql.DataSource ds;
+		
+		</pre>
+         <p>
+
+		
+         </p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+				In JBoss, whenever the mappedName() attribute is specified (with @Resource, @EJB), JBoss will use that as the GLOBAL jndi name to look it up.
+			</p>
+         </div>
+         <p>
+
+		The @Resource annotation is used to inject these singletons as well:
+
+		</p>
+         <pre class="programlisting">
+			
+@Resource
+javax.ejb.SessionContext ctx;
+
+@Resource
+javax.ejb.TimerService timer;
+
+@Resource
+javax.ejb.UserTransaction ut;
+
+			
+		</pre>
+         <p>
+
+	
+         </p>
+         <p>
+		
+            <code class="literal">@EJB</code> and <code class="literal">@Resource</code> also create an entry within the JNDI ENC of the bean. So, the above @EJB
+		injection will create an entry for the reference calculator bean under "java:comp/env/ejb/calculator".
+	</p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running
+	</div>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+	To build and run the example, make sure you have installed JBoss 5.x.
+	See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+			From the command prompt, move to the "injection" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+	</div>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <pre class="programlisting">
+	
+$ ant
+$ ant run
+
+run:
+     [java] Buying 1 memory stick
+     [java] Buying another memory stick
+     [java] Buying a laptop
+     [java] Print cart:
+     [java] 2     Memory stick
+     [java] 1     Laptop
+     [java] Checkout
+
+     
+	</pre>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Extended_Persistence_Contexts.html">
+               <strong>Prev</strong>Chapter 13. Introduction to Extended Persistence ...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="EJB3_Interceptors.html">
+               <strong>Next</strong>Chapter 15. Introduction to EJB3 Interceptors</a>
+         </li>
+      </ul>
+   </body>
+</html>

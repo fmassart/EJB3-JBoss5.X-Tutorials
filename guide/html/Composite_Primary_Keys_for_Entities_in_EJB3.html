@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Chapter 7. Introduction to Composite Primary Keys and Primary Key Classes</title>
+      <link rel="stylesheet" href="css/jbossorg.css" type="text/css"/>
+      <meta name="generator" content="DocBook XSL Stylesheets V1.72.0"/>
+      <link rel="start" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="up" href="index.html" title="JBoss EJB3 Tutorials"/>
+      <link rel="prev" href="Callbacks_and_Callback_Handlers.html" title="Chapter 6. Introduction to Callbacks and Callback Handlers in EJB3"/>
+      <link rel="next" href="Dependencies_in_EJB3.html" title="Chapter 8. Introduction to specifying dependencies in EJB3 beans"/>
+   </head>
+   <body>
+      <p id="title">
+         <a href="http://www.jboss.org" class="jbossOrg_href">
+            <strong>
+						        JBoss.org	
+						</strong>
+         </a>
+         <a href="http://labs.jboss.com/projects/docs" class="commDoc_href">
+            <strong>
+						        Community Documentation	
+						</strong>
+         </a>
+      </p>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Callbacks_and_Callback_Handlers.html">
+               <strong>Prev</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Dependencies_in_EJB3.html">
+               <strong>Next</strong>
+            </a>
+         </li>
+      </ul>
+      <div class="chapter" lang="en">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title">
+                     <a id="Composite_Primary_Keys_for_Entities_in_EJB3"/>Chapter 7. Introduction to Composite Primary Keys and Primary Key Classes</h2>
+               </div>
+            </div>
+         </div>
+         <p>
+	The EJB 3.0 specification allows you to define a primary key class as a <code class="literal">@Embeddable</code> and use it as the
+	primary key of your Entity bean. One or more properties can be used as members of the primary key for that particular table.
+	This tutorial is an adaptation of the "relationships" tutorial. It adds a primary key class to Customer that holds both
+	the <code class="literal">name</code> and <code class="literal">id</code> of the Customer.
+	</p>
+         <pre class="programlisting">
+	
+@Embeddable
+public class CustomerPK implements java.io.Serializable
+{
+   private long id;
+   private String name;
+
+
+   public CustomerPK()
+   {
+   }
+
+   public CustomerPK(long id, String name)
+   {
+      this.id = id;
+      this.name = name;
+   }
+
+   public long getId()
+   {
+      return id;
+   }
+
+   public void setId(long id)
+   {
+      this.id = id;
+   }
+
+   public String getName()
+   {
+      return name;
+   }
+
+   public void setName(String name)
+   {
+      this.name = name;
+   }
+
+   public int hashCode()
+   {
+      return (int) id + name.hashCode();
+   }
+
+   public boolean equals(Object obj)
+   {
+      if (obj == this) return true;
+      if (!(obj instanceof CustomerPK)) return false;
+      if (obj == null) return false;
+      CustomerPK pk = (CustomerPK) obj;
+      return pk.id == id &amp;&amp; pk.name.equals(name);
+   }
+}
+
+	</pre>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+	Mapping the primary key class:
+	</div>
+         <p>
+		Open up <code class="literal">org.jboss.tutorial.composite.bean.Customer</code> and look for the <code class="literal">getPk()</code> method.
+		This defines the primary key class.
+		</p>
+         <pre class="programlisting">
+		
+@EmbeddedId
+public CustomerPK getPk()
+{
+   return pk;
+}
+		
+		</pre>
+         <p>
+
+		The <code class="literal">org.jboss.tutorial.composite.bean.CustomerPK</code> class is mapped to
+		<code class="literal">org.jboss.tutorial.composite.bean.Customer</code> just like any other embeddable object.
+		The additional <code class="literal">@EmbeddedId</code> annotation specifies that it will be the primary key.
+		</p>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+				If you provide a primary key class, JBoss cannot auto-generate the key for you. You must allocate
+				a CustomerPK class and instantiate it with your id and name when you create the Customer.
+			</p>
+         </div>
+         <p>
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+		Many To Many
+	</div>
+         <p>
+		There is a many-to-many relationship between <code class="literal">org.jboss.tutorial.composite.bean.Customer</code> and
+		<code class="literal">org.jboss.tutorial.composite.bean.Flight</code>. In order to have a many-to-many relationship there
+		needs to be a distinct join table that maps the many-to-many relationship. This is called an association table.
+  		You need to use the <code class="literal">@JoinTable</code> annotation to define this join table. The <code class="literal">@JoinTable</code>
+  		must be defined on both sides of the bi-directional relationship. Let's look at the Customer side of the relationship
+
+  		</p>
+         <pre class="programlisting">
+	  		
+@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER, mappedBy="customers")
+@JoinTable(name="flight_customer_table", joinColumns={@JoinColumn(name = "FLIGHT_ID")},
+          	inverseJoinColumns={@JoinColumn(name = "CUSTOMER_ID"), @JoinColumn(name = "CUSTOMER_NAME")})
+public Set&lt;Flight&gt; getFlights()
+{
+ 		return flights;
+}
+	  		
+  		</pre>
+         <p>
+  		The <code class="literal">mappedBy</code> attribute specifies which side of the relationship is responsible for managing the relationship.
+  		If it is not set, then that side is responsible. So, for this example, the <code class="literal">Flight</code> Entity is responsible
+  		for managing the relation. In this example, we are specifying multiple <code class="literal">inverseJoinColumns</code>
+  		because Customer has a composite primary key.
+
+  		Let's look at the other side of the relationship in Flight:
+
+  		</p>
+         <pre class="programlisting">
+  			
+@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+@JoinTable(name = "flight_customer_table", joinColumns = {@JoinColumn(name = "FLIGHT_ID")},
+         inverseJoinColumns = {@JoinColumn(name = "CUSTOMER_ID"), @JoinColumn(name = "CUSTOMER_NAME")})
+public Set&lt;Customer&gt; getCustomers()
+{
+	return customers;
+}
+  			
+  		</pre>
+         <p>
+
+  		The <code class="literal">Flight</code> Entity must also define the <code class="literal">@ManyToMany</code> and <code class="literal">@JoinTable</code>.
+
+		The database associate table will look like this:
+
+		</p>
+         <pre class="programlisting">
+		
+create table FLIGHT_CUSTOMER_TABLE (
+  		CUSTOMER_ID integer,
+  		CUSTOMER_NAME varchar,
+  		FLIGHT_ID integer
+);
+		
+		</pre>
+         <p>
+	
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Building and Running
+	</div>
+         <div class="note">
+            <h2>Note</h2>
+            <p>
+	To build and run the example, make sure you have installed JBoss 5.x.
+	See the <a href="JBossAS5.html" title="1.1. JBoss Application Server 5.x">Section 1.1, “JBoss Application Server 5.x”</a> for details.
+			</p>
+         </div>
+         <p>
+			From the command prompt, move to the "composite" folder under the <a href="EJB3_TUTORIAL_HOME.html" title="1.3. Set the EJB3_TUTORIAL_HOME">Section 1.3, “Set the EJB3_TUTORIAL_HOME”</a>
+		
+         </p>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Ant Users:
+	</div>
+         <p>
+		Make sure your JBossAS-5.x is running
+		</p>
+         <pre class="programlisting">
+	
+$ ant
+$ ant run
+
+run:
+     [java] Air France customers
+     [java] Bill
+     [java] Monica
+     [java] USAir customers
+     [java] Molly
+     
+	</pre>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+Maven Users: Make sure the AS is not running.
+	</div>
+         <pre class="programlisting">
+$ mvn clean install -PRunSingleTutorial
+	</pre>
+         <div class="sect5" lang="en">
+            <div class="titlepage"/>
+View the tables and rows:
+	</div>
+         <p>
+		You can view the tables created by JBoss by going to the
+		<a xmlns:xlink="http://www.w3.org/1999/xlink" href="http://localhost:8080/jmx-console/HtmlAdaptor?action=inspectMBean&amp;name=jboss%3Aservice%3DHypersonic%2Cdatabase%3DlocalDB">Hypersonic Service</a>,
+		scrolling down to the <code class="literal">startDatabaseManager</code> button and clicking it.
+		A Hypersonic SQL window will be minimized, but you can open it up to look at the tables and do queries.
+
+	</p>
+      </div>
+      <ul class="docnav">
+         <li class="previous">
+            <a accesskey="p" href="Callbacks_and_Callback_Handlers.html">
+               <strong>Prev</strong>Chapter 6. Introduction to Callbacks and Callback...</a>
+         </li>
+         <li class="up">
+            <a accesskey="u" href="#">
+               <strong>Top of page</strong>
+            </a>
+         </li>
+         <li class="home">
+            <a accesskey="h" href="index.html">
+               <strong>Front page</strong>
+            </a>
+         </li>
+         <li class="next">
+            <a accesskey="n" href="Dependencies_in_EJB3.html">
+               <strong>Next</strong>Chapter 8. Introduction to specifying dependencie...</a>
+         </li>
+      </ul>
+   </body>
+</html>
